@@ -14,7 +14,7 @@
  * Plugin Name: CrispySEO
  * Plugin URI:  https://christopherspenn.com/crispytheme
  * Description: Comprehensive SEO plugin bundled with CrispyTheme. Meta tags, JSON-LD, sitemaps, redirects, analytics, and more.
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Christopher S. Penn
  * Author URI:  https://christopherspenn.com
  * Text Domain: crispy-seo
@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'CRISPY_SEO_VERSION', '1.0.1' );
+define( 'CRISPY_SEO_VERSION', '1.0.2' );
 define( 'CRISPY_SEO_FILE', __FILE__ );
 define( 'CRISPY_SEO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CRISPY_SEO_URL', plugin_dir_url( __FILE__ ) );
