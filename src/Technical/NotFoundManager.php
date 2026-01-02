@@ -59,17 +59,17 @@ class NotFoundManager {
 		// Ensure table exists (handles case where plugin updated without reactivation).
 		$this->ensureTableExists();
 
-		add_action( 'template_redirect', [ $this, 'handleNotFound' ], 1 );
+		\add_action( 'template_redirect', [ $this, 'handleNotFound' ], 1 );
 
 		// AJAX handlers.
-		add_action( 'wp_ajax_crispy_seo_get_404_logs', [ $this, 'ajaxGetLogs' ] );
-		add_action( 'wp_ajax_crispy_seo_delete_404_logs', [ $this, 'ajaxDeleteLogs' ] );
-		add_action( 'wp_ajax_crispy_seo_purge_404_logs', [ $this, 'ajaxPurgeLogs' ] );
-		add_action( 'wp_ajax_crispy_seo_create_redirect_from_404', [ $this, 'ajaxCreateRedirect' ] );
-		add_action( 'wp_ajax_crispy_seo_save_404_settings', [ $this, 'ajaxSaveSettings' ] );
+		\add_action( 'wp_ajax_crispy_seo_get_404_logs', [ $this, 'ajaxGetLogs' ] );
+		\add_action( 'wp_ajax_crispy_seo_delete_404_logs', [ $this, 'ajaxDeleteLogs' ] );
+		\add_action( 'wp_ajax_crispy_seo_purge_404_logs', [ $this, 'ajaxPurgeLogs' ] );
+		\add_action( 'wp_ajax_crispy_seo_create_redirect_from_404', [ $this, 'ajaxCreateRedirect' ] );
+		\add_action( 'wp_ajax_crispy_seo_save_404_settings', [ $this, 'ajaxSaveSettings' ] );
 
 		// Scheduled cleanup.
-		add_action( 'crispy_seo_cleanup_404_logs', [ $this, 'scheduledCleanup' ] );
+		\add_action( 'crispy_seo_cleanup_404_logs', [ $this, 'scheduledCleanup' ] );
 	}
 
 	/**
@@ -95,16 +95,16 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function handleNotFound(): void {
-		if ( ! is_404() ) {
+		if ( ! \is_404() ) {
 			return;
 		}
 
 		// Log the 404 hit.
 		if ( $this->shouldLogHit() ) {
 			$this->logHit(
-				isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '',
-				isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '',
-				isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : ''
+				isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '',
+				isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( \wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '',
+				isset( $_SERVER['HTTP_USER_AGENT'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : ''
 			);
 		}
 
@@ -122,17 +122,17 @@ class NotFoundManager {
 	 */
 	private function shouldLogHit(): bool {
 		// Skip if logging is disabled.
-		if ( ! get_option( 'crispy_seo_404_log_enabled', true ) ) {
+		if ( ! \get_option( 'crispy_seo_404_log_enabled', true ) ) {
 			return false;
 		}
 
 		// Skip logged-in administrators.
-		if ( current_user_can( 'manage_options' ) ) {
+		if ( \current_user_can( 'manage_options' ) ) {
 			return false;
 		}
 
 		// Skip known bots.
-		$userAgent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+		$userAgent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 		foreach ( self::BOT_PATTERNS as $bot ) {
 			if ( stripos( $userAgent, $bot ) !== false ) {
 				return false;
@@ -178,7 +178,7 @@ class NotFoundManager {
 		);
 
 		// Clear stats cache on new log.
-		wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
+		\wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
 
 		return $result !== false;
 	}
@@ -191,7 +191,7 @@ class NotFoundManager {
 	 * @return string|null Anonymized IP or null.
 	 */
 	private function getAnonymizedIp(): ?string {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : null;
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : null;
 
 		if ( ! $ip ) {
 			return null;
@@ -227,7 +227,7 @@ class NotFoundManager {
 	 * @return int Page ID or 0 if not set.
 	 */
 	public function getCustom404PageId(): int {
-		return (int) get_option( 'crispy_seo_404_page_id', 0 );
+		return (int) \get_option( 'crispy_seo_404_page_id', 0 );
 	}
 
 	/**
@@ -240,14 +240,14 @@ class NotFoundManager {
 		global $wp_query, $post;
 
 		// Get custom page.
-		$customPage = get_post( $pageId );
+		$customPage = \get_post( $pageId );
 		if ( ! $customPage || $customPage->post_status !== 'publish' ) {
 			return;
 		}
 
 		// Set 404 status header.
-		status_header( 404 );
-		nocache_headers();
+		\status_header( 404 );
+		\nocache_headers();
 
 		// Setup post data.
 		$post = $customPage; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional for custom 404.
@@ -258,10 +258,10 @@ class NotFoundManager {
 		$wp_query->is_page    = true;
 		$wp_query->is_single  = true;
 
-		setup_postdata( $customPage );
+		\setup_postdata( $customPage );
 
 		// Load page template.
-		$template = get_page_template();
+		$template = \get_page_template();
 		if ( $template && file_exists( $template ) ) {
 			include $template;
 			exit;
@@ -281,14 +281,14 @@ class NotFoundManager {
 	 * @return array{total: int, unique_urls: int, today: int}
 	 */
 	public function getStats(): array {
-		$cached = wp_cache_get( self::CACHE_KEY . '_stats', 'crispy_seo' );
+		$cached = \wp_cache_get( self::CACHE_KEY . '_stats', 'crispy_seo' );
 		if ( $cached !== false ) {
 			return $cached;
 		}
 
 		global $wpdb;
 		$tableName = NotFoundInstaller::getTableName();
-		$today     = gmdate( 'Y-m-d' );
+		$today     = \gmdate( 'Y-m-d' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom query with caching.
 		$stats = $wpdb->get_row(
@@ -309,7 +309,7 @@ class NotFoundManager {
 			'today'       => (int) ( $stats['today'] ?? 0 ),
 		];
 
-		wp_cache_set( self::CACHE_KEY . '_stats', $result, 'crispy_seo', self::CACHE_EXPIRATION );
+		\wp_cache_set( self::CACHE_KEY . '_stats', $result, 'crispy_seo', self::CACHE_EXPIRATION );
 
 		return $result;
 	}
@@ -340,7 +340,7 @@ class NotFoundManager {
 			ARRAY_A
 		);
 
-		return is_array( $results ) ? $results : [];
+		return \is_array( $results ) ? $results : [];
 	}
 
 	/**
@@ -353,8 +353,8 @@ class NotFoundManager {
 		global $wpdb;
 		$tableName = NotFoundInstaller::getTableName();
 
-		$limit   = isset( $filters['limit'] ) ? absint( $filters['limit'] ) : 100;
-		$offset  = isset( $filters['offset'] ) ? absint( $filters['offset'] ) : 0;
+		$limit   = isset( $filters['limit'] ) ? \absint( $filters['limit'] ) : 100;
+		$offset  = isset( $filters['offset'] ) ? \absint( $filters['offset'] ) : 0;
 		$orderby = isset( $filters['orderby'] ) && in_array( $filters['orderby'], [ 'created_at', 'request_path' ], true )
 			? $filters['orderby']
 			: 'created_at';
@@ -373,7 +373,7 @@ class NotFoundManager {
 			ARRAY_A
 		);
 
-		return is_array( $results ) ? $results : [];
+		return \is_array( $results ) ? $results : [];
 	}
 
 	/**
@@ -395,7 +395,7 @@ class NotFoundManager {
 			ARRAY_A
 		);
 
-		return is_array( $result ) ? $result : null;
+		return \is_array( $result ) ? $result : null;
 	}
 
 	/**
@@ -426,9 +426,9 @@ class NotFoundManager {
 		);
 
 		// Clear cache.
-		wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
+		\wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
 
-		return is_int( $deleted ) ? $deleted : 0;
+		return \is_int( $deleted ) ? $deleted : 0;
 	}
 
 	/**
@@ -450,9 +450,9 @@ class NotFoundManager {
 		);
 
 		// Clear cache.
-		wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
+		\wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
 
-		return is_int( $deleted ) ? $deleted : 0;
+		return \is_int( $deleted ) ? $deleted : 0;
 	}
 
 	/**
@@ -468,9 +468,9 @@ class NotFoundManager {
 		$deleted = $wpdb->query( "TRUNCATE TABLE {$tableName}" );
 
 		// Clear cache.
-		wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
+		\wp_cache_delete( self::CACHE_KEY . '_stats', 'crispy_seo' );
 
-		return is_int( $deleted ) ? $deleted : 0;
+		return \is_int( $deleted ) ? $deleted : 0;
 	}
 
 	/**
@@ -514,7 +514,7 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function scheduledCleanup(): void {
-		$retentionDays = (int) get_option( 'crispy_seo_404_log_retention_days', 30 );
+		$retentionDays = (int) \get_option( 'crispy_seo_404_log_retention_days', 30 );
 		$installer     = new NotFoundInstaller();
 		$installer->cleanupOldLogs( $retentionDays );
 	}
@@ -525,19 +525,19 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function ajaxGetLogs(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Unauthorized.', 'crispy-seo' ) ] );
 		}
 
-		$limit  = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 100;
-		$offset = isset( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 0;
+		$limit  = isset( $_POST['limit'] ) ? \absint( $_POST['limit'] ) : 100;
+		$offset = isset( $_POST['offset'] ) ? \absint( $_POST['offset'] ) : 0;
 
 		$logs  = $this->getLogs( [ 'limit' => $limit, 'offset' => $offset ] );
 		$stats = $this->getStats();
 
-		wp_send_json_success( [
+		\wp_send_json_success( [
 			'logs'  => $logs,
 			'stats' => $stats,
 		] );
@@ -549,24 +549,24 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function ajaxDeleteLogs(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Unauthorized.', 'crispy-seo' ) ] );
 		}
 
 		$ids = isset( $_POST['ids'] ) ? array_map( 'absint', (array) $_POST['ids'] ) : [];
 
 		if ( empty( $ids ) ) {
-			wp_send_json_error( [ 'message' => __( 'No log IDs provided.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'No log IDs provided.', 'crispy-seo' ) ] );
 		}
 
 		$deleted = $this->deleteLogs( $ids );
 
-		wp_send_json_success( [
+		\wp_send_json_success( [
 			'message' => sprintf(
 				/* translators: %d: number of deleted logs */
-				__( 'Deleted %d log entries.', 'crispy-seo' ),
+				\__( 'Deleted %d log entries.', 'crispy-seo' ),
 				$deleted
 			),
 			'deleted' => $deleted,
@@ -579,16 +579,16 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function ajaxPurgeLogs(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Unauthorized.', 'crispy-seo' ) ] );
 		}
 
 		$this->purgeAllLogs();
 
-		wp_send_json_success( [
-			'message' => __( 'All 404 logs have been purged.', 'crispy-seo' ),
+		\wp_send_json_success( [
+			'message' => \__( 'All 404 logs have been purged.', 'crispy-seo' ),
 		] );
 	}
 
@@ -598,33 +598,33 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function ajaxCreateRedirect(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Unauthorized.', 'crispy-seo' ) ] );
 		}
 
-		$logId     = isset( $_POST['log_id'] ) ? absint( $_POST['log_id'] ) : 0;
-		$targetUrl = isset( $_POST['target_url'] ) ? esc_url_raw( wp_unslash( $_POST['target_url'] ) ) : '';
-		$type      = isset( $_POST['redirect_type'] ) ? absint( $_POST['redirect_type'] ) : 301;
+		$logId     = isset( $_POST['log_id'] ) ? \absint( $_POST['log_id'] ) : 0;
+		$targetUrl = isset( $_POST['target_url'] ) ? esc_url_raw( \wp_unslash( $_POST['target_url'] ) ) : '';
+		$type      = isset( $_POST['redirect_type'] ) ? \absint( $_POST['redirect_type'] ) : 301;
 
 		if ( ! $logId ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid log ID.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Invalid log ID.', 'crispy-seo' ) ] );
 		}
 
 		if ( empty( $targetUrl ) ) {
-			wp_send_json_error( [ 'message' => __( 'Target URL is required.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Target URL is required.', 'crispy-seo' ) ] );
 		}
 
 		$result = $this->createRedirectFromLog( $logId, $targetUrl, $type );
 
 		if ( $result ) {
-			wp_send_json_success( [
-				'message' => __( 'Redirect created successfully.', 'crispy-seo' ),
+			\wp_send_json_success( [
+				'message' => \__( 'Redirect created successfully.', 'crispy-seo' ),
 			] );
 		} else {
-			wp_send_json_error( [
-				'message' => __( 'Failed to create redirect.', 'crispy-seo' ),
+			\wp_send_json_error( [
+				'message' => \__( 'Failed to create redirect.', 'crispy-seo' ),
 			] );
 		}
 	}
@@ -635,22 +635,22 @@ class NotFoundManager {
 	 * @return void
 	 */
 	public function ajaxSaveSettings(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Unauthorized.', 'crispy-seo' ) ] );
 		}
 
-		$pageId        = isset( $_POST['page_id'] ) ? absint( $_POST['page_id'] ) : 0;
-		$retentionDays = isset( $_POST['retention_days'] ) ? absint( $_POST['retention_days'] ) : 30;
+		$pageId        = isset( $_POST['page_id'] ) ? \absint( $_POST['page_id'] ) : 0;
+		$retentionDays = isset( $_POST['retention_days'] ) ? \absint( $_POST['retention_days'] ) : 30;
 		$logEnabled    = isset( $_POST['log_enabled'] ) && $_POST['log_enabled'] === '1';
 
-		update_option( 'crispy_seo_404_page_id', $pageId );
-		update_option( 'crispy_seo_404_log_retention_days', max( 1, min( 365, $retentionDays ) ) );
-		update_option( 'crispy_seo_404_log_enabled', $logEnabled );
+		\update_option( 'crispy_seo_404_page_id', $pageId );
+		\update_option( 'crispy_seo_404_log_retention_days', max( 1, min( 365, $retentionDays ) ) );
+		\update_option( 'crispy_seo_404_log_enabled', $logEnabled );
 
-		wp_send_json_success( [
-			'message' => __( 'Settings saved successfully.', 'crispy-seo' ),
+		\wp_send_json_success( [
+			'message' => \__( 'Settings saved successfully.', 'crispy-seo' ),
 		] );
 	}
 }

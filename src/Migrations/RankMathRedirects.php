@@ -93,7 +93,7 @@ class RankMathRedirects {
 			return [
 				'imported' => 0,
 				'skipped'  => 0,
-				'errors'   => [ __( 'No Rank Math redirects found.', 'crispy-seo' ) ],
+				'errors'   => [ \__( 'No Rank Math redirects found.', 'crispy-seo' ) ],
 			];
 		}
 
@@ -140,7 +140,7 @@ class RankMathRedirects {
 				if ( $existing ) {
 					$errors[] = sprintf(
 						/* translators: %s: source path */
-						__( 'Skipped duplicate: %s', 'crispy-seo' ),
+						\__( 'Skipped duplicate: %s', 'crispy-seo' ),
 						$pattern
 					);
 					++$skipped;
@@ -152,14 +152,14 @@ class RankMathRedirects {
 				$inserted = $wpdb->insert(
 					$crispyTable,
 					[
-						'source_path'   => sanitize_text_field( $pattern ),
+						'source_path'   => \sanitize_text_field( $pattern ),
 						'target_url'    => esc_url_raw( $target ),
 						'redirect_type' => $this->mapRedirectType( $type ),
 						'match_type'    => $matchType,
 						'hit_count'     => $hits,
 						'created_at'    => $createdAt,
 						'updated_at'    => $updatedAt,
-						'notes'         => __( 'Imported from Rank Math', 'crispy-seo' ),
+						'notes'         => \__( 'Imported from Rank Math', 'crispy-seo' ),
 						'enabled'       => 1,
 					],
 					[ '%s', '%s', '%d', '%s', '%d', '%s', '%s', '%s', '%d' ]
@@ -170,7 +170,7 @@ class RankMathRedirects {
 				} else {
 					$errors[] = sprintf(
 						/* translators: %s: source path */
-						__( 'Failed to import: %s', 'crispy-seo' ),
+						\__( 'Failed to import: %s', 'crispy-seo' ),
 						$pattern
 					);
 					++$skipped;
@@ -180,7 +180,7 @@ class RankMathRedirects {
 
 		// Mark migration as complete if not dry run.
 		if ( ! $dryRun && $imported > 0 ) {
-			update_option( 'crispy_seo_rankmath_migrated', true );
+			\update_option( 'crispy_seo_rankmath_migrated', true );
 		}
 
 		return [
@@ -229,14 +229,14 @@ class RankMathRedirects {
 	 * @return bool True if already migrated.
 	 */
 	public function isMigrated(): bool {
-		return (bool) get_option( 'crispy_seo_rankmath_migrated', false );
+		return (bool) \get_option( 'crispy_seo_rankmath_migrated', false );
 	}
 
 	/**
 	 * Reset migration status.
 	 */
 	public function resetMigration(): void {
-		delete_option( 'crispy_seo_rankmath_migrated' );
+		\delete_option( 'crispy_seo_rankmath_migrated' );
 	}
 
 

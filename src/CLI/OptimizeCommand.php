@@ -71,7 +71,7 @@ class OptimizeCommand {
 			'backup'       => ! isset( $assocArgs['no-backup'] ),
 		];
 
-		$attachment = get_post( $attachmentId );
+		$attachment = \get_post( $attachmentId );
 
 		if ( ! $attachment || $attachment->post_type !== 'attachment' ) {
 			WP_CLI::error( 'Invalid attachment ID.' );
@@ -83,7 +83,7 @@ class OptimizeCommand {
 			WP_CLI::error( 'Attachment is not an image.' );
 		}
 
-		WP_CLI::log( sprintf( 'Optimizing: %s', get_attached_file( $attachmentId ) ) );
+		WP_CLI::log( sprintf( 'Optimizing: %s', \get_attached_file( $attachmentId ) ) );
 
 		$result = $this->optimizer->optimizeImage( $attachmentId, $options );
 
@@ -415,7 +415,7 @@ class OptimizeCommand {
 		$skipped  = 0;
 
 		foreach ( $attachmentIds as $id ) {
-			$filePath = get_attached_file( (int) $id );
+			$filePath = \get_attached_file( (int) $id );
 
 			if ( ! $filePath ) {
 				++$skipped;

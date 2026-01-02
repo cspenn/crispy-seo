@@ -32,11 +32,11 @@ class ShareButtons {
 	 */
 	public function __construct() {
 		add_shortcode( 'crispy_share', [ $this, 'renderShortcode' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueAssets' ] );
+		\add_action( 'wp_enqueue_scripts', [ $this, 'enqueueAssets' ] );
 
 		// Add share buttons to content if enabled.
-		if ( get_option( 'crispy_seo_auto_share_buttons', false ) ) {
-			add_filter( 'the_content', [ $this, 'appendToContent' ], 99 );
+		if ( \get_option( 'crispy_seo_auto_share_buttons', false ) ) {
+			\add_filter( 'the_content', [ $this, 'appendToContent' ], 99 );
 		}
 	}
 
@@ -44,14 +44,14 @@ class ShareButtons {
 	 * Enqueue share button assets.
 	 */
 	public function enqueueAssets(): void {
-		wp_register_style(
+		\wp_register_style(
 			'crispy-share-buttons',
 			CRISPY_SEO_URL . 'assets/css/share-buttons.css',
 			[],
 			CRISPY_SEO_VERSION
 		);
 
-		wp_register_script(
+		\wp_register_script(
 			'crispy-share-buttons',
 			CRISPY_SEO_URL . 'assets/js/share-buttons.js',
 			[],
@@ -98,8 +98,8 @@ class ShareButtons {
 	public function render( array $options = [] ): string {
 		$defaults = [
 			'networks'   => $this->getEnabledNetworks(),
-			'style'      => get_option( 'crispy_seo_share_style', 'default' ),
-			'showCounts' => get_option( 'crispy_seo_show_share_counts', false ),
+			'style'      => \get_option( 'crispy_seo_share_style', 'default' ),
+			'showCounts' => \get_option( 'crispy_seo_show_share_counts', false ),
 			'title'      => '',
 			'url'        => '',
 			'image'      => '',
@@ -108,25 +108,25 @@ class ShareButtons {
 		$options = array_merge( $defaults, $options );
 
 		// Get current post data if not provided.
-		$post = get_post();
+		$post = \get_post();
 		if ( $post ) {
 			if ( empty( $options['title'] ) ) {
-				$options['title'] = get_the_title( $post );
+				$options['title'] = \get_the_title( $post );
 			}
 			if ( empty( $options['url'] ) ) {
-				$options['url'] = get_permalink( $post );
+				$options['url'] = \get_permalink( $post );
 			}
-			if ( empty( $options['image'] ) && has_post_thumbnail( $post ) ) {
+			if ( empty( $options['image'] ) && \has_post_thumbnail( $post ) ) {
 				$options['image'] = get_the_post_thumbnail_url( $post, 'large' );
 			}
 		}
 
 		// Enqueue assets.
-		wp_enqueue_style( 'crispy-share-buttons' );
-		wp_enqueue_script( 'crispy-share-buttons' );
+		\wp_enqueue_style( 'crispy-share-buttons' );
+		\wp_enqueue_script( 'crispy-share-buttons' );
 
-		$output  = '<div class="crispy-share-buttons crispy-share-buttons--' . esc_attr( $options['style'] ) . '">';
-		$output .= '<span class="crispy-share-buttons__label">' . esc_html__( 'Share:', 'crispy-seo' ) . '</span>';
+		$output  = '<div class="crispy-share-buttons crispy-share-buttons--' . \esc_attr( $options['style'] ) . '">';
+		$output .= '<span class="crispy-share-buttons__label">' . esc_html\__( 'Share:', 'crispy-seo' ) . '</span>';
 		$output .= '<div class="crispy-share-buttons__list">';
 
 		foreach ( $options['networks'] as $network ) {
@@ -148,9 +148,9 @@ class ShareButtons {
 	 * @param array<string, mixed> $options Share options.
 	 */
 	private function renderButton( string $network, array $options ): string {
-		$url   = esc_url( $options['url'] );
-		$title = esc_attr( $options['title'] );
-		$image = esc_url( $options['image'] );
+		$url   = \esc_url( $options['url'] );
+		$title = \esc_attr( $options['title'] );
+		$image = \esc_url( $options['image'] );
 
 		$shareUrl = $this->getShareUrl( $network, $url, $title, $image );
 		$label    = $this->getNetworkLabel( $network );
@@ -161,23 +161,23 @@ class ShareButtons {
 		if ( $network === 'copy' ) {
 			return sprintf(
 				'<button type="button" class="%s" data-url="%s" aria-label="%s">%s<span class="crispy-share-button__label">%s</span></button>',
-				esc_attr( $buttonClass ),
-				esc_attr( $url ),
+				\esc_attr( $buttonClass ),
+				\esc_attr( $url ),
 				/* translators: %s: network name */
-				sprintf( esc_attr__( 'Share via %s', 'crispy-seo' ), $label ),
+				sprintf( esc_attr\__( 'Share via %s', 'crispy-seo' ), $label ),
 				$icon,
-				esc_html( $label )
+				\esc_html( $label )
 			);
 		}
 
 		return sprintf(
 			'<a href="%s" class="%s" target="_blank" rel="noopener noreferrer" aria-label="%s">%s<span class="crispy-share-button__label">%s</span></a>',
-			esc_url( $shareUrl ),
-			esc_attr( $buttonClass ),
+			\esc_url( $shareUrl ),
+			\esc_attr( $buttonClass ),
 			/* translators: %s: network name */
-			sprintf( esc_attr__( 'Share via %s', 'crispy-seo' ), $label ),
+			sprintf( esc_attr\__( 'Share via %s', 'crispy-seo' ), $label ),
 			$icon,
-			esc_html( $label )
+			\esc_html( $label )
 		);
 	}
 
@@ -225,13 +225,13 @@ class ShareButtons {
 	 */
 	private function getNetworkLabel( string $network ): string {
 		$labels = [
-			'facebook'  => __( 'Facebook', 'crispy-seo' ),
-			'twitter'   => __( 'X (Twitter)', 'crispy-seo' ),
-			'linkedin'  => __( 'LinkedIn', 'crispy-seo' ),
-			'pinterest' => __( 'Pinterest', 'crispy-seo' ),
-			'reddit'    => __( 'Reddit', 'crispy-seo' ),
-			'email'     => __( 'Email', 'crispy-seo' ),
-			'copy'      => __( 'Copy Link', 'crispy-seo' ),
+			'facebook'  => \__( 'Facebook', 'crispy-seo' ),
+			'twitter'   => \__( 'X (Twitter)', 'crispy-seo' ),
+			'linkedin'  => \__( 'LinkedIn', 'crispy-seo' ),
+			'pinterest' => \__( 'Pinterest', 'crispy-seo' ),
+			'reddit'    => \__( 'Reddit', 'crispy-seo' ),
+			'email'     => \__( 'Email', 'crispy-seo' ),
+			'copy'      => \__( 'Copy Link', 'crispy-seo' ),
 		];
 
 		return $labels[ $network ] ?? ucfirst( $network );
@@ -262,7 +262,7 @@ class ShareButtons {
 	 * @return array<string>
 	 */
 	private function getEnabledNetworks(): array {
-		$enabled = get_option( 'crispy_seo_share_networks', [] );
+		$enabled = \get_option( 'crispy_seo_share_networks', [] );
 
 		if ( empty( $enabled ) ) {
 			return [ 'facebook', 'twitter', 'linkedin', 'email' ];
@@ -277,11 +277,11 @@ class ShareButtons {
 	 * @param string $content Post content.
 	 */
 	public function appendToContent( string $content ): string {
-		if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
+		if ( ! \is_singular() || ! in_the_loop() || ! is_main_query() ) {
 			return $content;
 		}
 
-		$position = get_option( 'crispy_seo_share_position', 'after' );
+		$position = \get_option( 'crispy_seo_share_position', 'after' );
 
 		if ( $position === 'before' ) {
 			return $this->render() . $content;

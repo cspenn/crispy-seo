@@ -155,7 +155,7 @@ class LinkCommand {
 		$caseSensitive = isset( $assocArgs['case-sensitive'] );
 
 		// Validate post exists.
-		$post = get_post( $postId );
+		$post = \get_post( $postId );
 		if ( ! $post ) {
 			WP_CLI::error( sprintf( 'Post ID %d not found.', $postId ) );
 		}

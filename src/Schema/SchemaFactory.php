@@ -49,7 +49,7 @@ class SchemaFactory {
 		foreach ( $schemas as $schema ) {
 			printf(
 				'<script type="application/ld+json">%s</script>' . "\n",
-				wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT )
+				\wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT )
 			);
 		}
 	}
@@ -63,7 +63,7 @@ class SchemaFactory {
 		$schemas = [];
 
 		// Always add WebSite schema on front page.
-		if ( is_front_page() ) {
+		if ( \is_front_page() ) {
 			$schemas[] = $this->generateWebSite();
 		}
 
@@ -71,7 +71,7 @@ class SchemaFactory {
 		$schemas[] = $this->generateOrganization();
 
 		// Add Breadcrumbs.
-		if ( ! is_front_page() ) {
+		if ( ! \is_front_page() ) {
 			$breadcrumbs = $this->generateBreadcrumbs();
 			if ( ! empty( $breadcrumbs ) ) {
 				$schemas[] = $breadcrumbs;
@@ -79,7 +79,7 @@ class SchemaFactory {
 		}
 
 		// Add page-specific schema.
-		if ( is_singular() ) {
+		if ( \is_singular() ) {
 			$postSchema = $this->generatePostSchema();
 			if ( ! empty( $postSchema ) ) {
 				$schemas[] = $postSchema;
@@ -98,9 +98,9 @@ class SchemaFactory {
 		$schema = [
 			'@context'    => 'https://schema.org',
 			'@type'       => 'WebSite',
-			'name'        => get_bloginfo( 'name' ),
-			'description' => get_bloginfo( 'description' ),
-			'url'         => home_url( '/' ),
+			'name'        => \get_bloginfo( 'name' ),
+			'description' => \get_bloginfo( 'description' ),
+			'url'         => \home_url( '/' ),
 		];
 
 		// Add search action.
@@ -108,7 +108,7 @@ class SchemaFactory {
 			'@type'       => 'SearchAction',
 			'target'      => [
 				'@type'       => 'EntryPoint',
-				'urlTemplate' => home_url( '/?s={search_term_string}' ),
+				'urlTemplate' => \home_url( '/?s={search_term_string}' ),
 			],
 			'query-input' => 'required name=search_term_string',
 		];
@@ -122,14 +122,14 @@ class SchemaFactory {
 	 * @return array<string, mixed>
 	 */
 	private function generateOrganization(): array {
-		$orgName = get_option( 'crispy_seo_organization_name', get_bloginfo( 'name' ) );
-		$orgLogo = get_option( 'crispy_seo_organization_logo', '' );
+		$orgName = \get_option( 'crispy_seo_organization_name', \get_bloginfo( 'name' ) );
+		$orgLogo = \get_option( 'crispy_seo_organization_logo', '' );
 
 		$schema = [
 			'@context' => 'https://schema.org',
 			'@type'    => 'Organization',
 			'name'     => $orgName,
-			'url'      => home_url( '/' ),
+			'url'      => \home_url( '/' ),
 		];
 
 		if ( ! empty( $orgLogo ) ) {
@@ -155,23 +155,23 @@ class SchemaFactory {
 		$items[] = [
 			'@type'    => 'ListItem',
 			'position' => $position++,
-			'name'     => __( 'Home', 'crispy-seo' ),
-			'item'     => home_url( '/' ),
+			'name'     => \__( 'Home', 'crispy-seo' ),
+			'item'     => \home_url( '/' ),
 		];
 
-		if ( is_singular() ) {
-			$post = get_post();
+		if ( \is_singular() ) {
+			$post = \get_post();
 
 			// Add category for posts.
 			if ( $post->post_type === 'post' ) {
-				$categories = get_the_category( $post->ID );
+				$categories = \get_the_category( $post->ID );
 				if ( ! empty( $categories ) ) {
 					$category = $categories[0];
 					$items[]  = [
 						'@type'    => 'ListItem',
 						'position' => $position++,
 						'name'     => $category->name,
-						'item'     => get_category_link( $category->term_id ),
+						'item'     => \get_category_link( $category->term_id ),
 					];
 				}
 			}
@@ -180,24 +180,24 @@ class SchemaFactory {
 			$items[] = [
 				'@type'    => 'ListItem',
 				'position' => $position,
-				'name'     => get_the_title( $post->ID ),
+				'name'     => \get_the_title( $post->ID ),
 			];
-		} elseif ( is_category() ) {
-			$category = get_queried_object();
+		} elseif ( \is_category() ) {
+			$category = \get_queried_object();
 			$items[]  = [
 				'@type'    => 'ListItem',
 				'position' => $position,
 				'name'     => $category->name,
 			];
-		} elseif ( is_tag() ) {
-			$tag     = get_queried_object();
+		} elseif ( \is_tag() ) {
+			$tag     = \get_queried_object();
 			$items[] = [
 				'@type'    => 'ListItem',
 				'position' => $position,
 				'name'     => $tag->name,
 			];
-		} elseif ( is_author() ) {
-			$author  = get_queried_object();
+		} elseif ( \is_author() ) {
+			$author  = \get_queried_object();
 			$items[] = [
 				'@type'    => 'ListItem',
 				'position' => $position,
@@ -222,14 +222,14 @@ class SchemaFactory {
 	 * @return array<string, mixed>|null
 	 */
 	private function generatePostSchema(): ?array {
-		$post = get_post();
+		$post = \get_post();
 		if ( ! $post ) {
 			return null;
 		}
 
-		$schemaType = get_post_meta( $post->ID, '_crispy_seo_schema_type', true );
+		$schemaType = \get_post_meta( $post->ID, '_crispy_seo_schema_type', true );
 		if ( empty( $schemaType ) ) {
-			$schemaType = get_option( 'crispy_seo_default_schema_type', 'Article' );
+			$schemaType = \get_option( 'crispy_seo_default_schema_type', 'Article' );
 		}
 
 		$method = 'generate' . str_replace( [ '/', ' ' ], '', $schemaType ) . 'Schema';
@@ -252,23 +252,23 @@ class SchemaFactory {
 		$schema = [
 			'@context'         => 'https://schema.org',
 			'@type'            => 'Article',
-			'headline'         => get_the_title( $post->ID ),
+			'headline'         => \get_the_title( $post->ID ),
 			'description'      => $this->getDescription( $post ),
-			'url'              => get_permalink( $post->ID ),
-			'datePublished'    => get_the_date( 'c', $post ),
-			'dateModified'     => get_the_modified_date( 'c', $post ),
+			'url'              => \get_permalink( $post->ID ),
+			'datePublished'    => \get_the_date( 'c', $post ),
+			'dateModified'     => \get_the_modified_date( 'c', $post ),
 			'author'           => $this->getAuthorSchema( $post ),
 			'publisher'        => $this->getPublisherSchema(),
 			'mainEntityOfPage' => [
 				'@type' => 'WebPage',
-				'@id'   => get_permalink( $post->ID ),
+				'@id'   => \get_permalink( $post->ID ),
 			],
 		];
 
 		// Add featured image.
-		if ( has_post_thumbnail( $post->ID ) ) {
-			$imageId  = get_post_thumbnail_id( $post->ID );
-			$imageSrc = wp_get_attachment_image_src( $imageId, 'full' );
+		if ( \has_post_thumbnail( $post->ID ) ) {
+			$imageId  = \get_post_thumbnail_id( $post->ID );
+			$imageSrc = \wp_get_attachment_image_src( $imageId, 'full' );
 			if ( $imageSrc ) {
 				$schema['image'] = [
 					'@type'  => 'ImageObject',
@@ -280,11 +280,12 @@ class SchemaFactory {
 		}
 
 		// Add word count.
-		$content = $post->post_content;
-		if ( has_post_meta( $post->ID, '_markdown_content' ) ) {
-			$content = get_post_meta( $post->ID, '_markdown_content', true );
+		$content  = $post->post_content;
+		$markdown = \get_post_meta( $post->ID, '_markdown_content', true );
+		if ( ! empty( $markdown ) ) {
+			$content = $markdown;
 		}
-		$schema['wordCount'] = str_word_count( wp_strip_all_tags( $content ) );
+		$schema['wordCount'] = str_word_count( \wp_strip_all_tags( $content ) );
 
 		return $schema;
 	}
@@ -332,14 +333,14 @@ class SchemaFactory {
 	 * @return array<string, mixed>
 	 */
 	private function generatePersonSchema( \WP_Post $post ): array {
-		$author = get_user_by( 'id', $post->post_author );
+		$author = \get_user_by( 'id', $post->post_author );
 
 		return [
 			'@context'    => 'https://schema.org',
 			'@type'       => 'Person',
 			'name'        => $author->display_name,
-			'url'         => get_author_posts_url( $author->ID ),
-			'description' => get_the_author_meta( 'description', $author->ID ),
+			'url'         => \get_author_posts_url( $author->ID ),
+			'description' => \get_the_author_meta( 'description', $author->ID ),
 		];
 	}
 
@@ -351,9 +352,10 @@ class SchemaFactory {
 	 */
 	private function generateFAQPageSchema( \WP_Post $post ): array {
 		// Parse FAQ from content.
-		$content = $post->post_content;
-		if ( has_post_meta( $post->ID, '_markdown_content' ) ) {
-			$content = get_post_meta( $post->ID, '_markdown_content', true );
+		$content  = $post->post_content;
+		$markdown = \get_post_meta( $post->ID, '_markdown_content', true );
+		if ( ! empty( $markdown ) ) {
+			$content = $markdown;
 		}
 
 		$faqs = $this->parseFAQFromContent( $content );
@@ -398,9 +400,10 @@ class SchemaFactory {
 	 * @return array<string, mixed>
 	 */
 	private function generateHowToSchema( \WP_Post $post ): array {
-		$content = $post->post_content;
-		if ( has_post_meta( $post->ID, '_markdown_content' ) ) {
-			$content = get_post_meta( $post->ID, '_markdown_content', true );
+		$content  = $post->post_content;
+		$markdown = \get_post_meta( $post->ID, '_markdown_content', true );
+		if ( ! empty( $markdown ) ) {
+			$content = $markdown;
 		}
 
 		$steps = $this->parseStepsFromContent( $content );
@@ -408,7 +411,7 @@ class SchemaFactory {
 		return [
 			'@context'    => 'https://schema.org',
 			'@type'       => 'HowTo',
-			'name'        => get_the_title( $post->ID ),
+			'name'        => \get_the_title( $post->ID ),
 			'description' => $this->getDescription( $post ),
 			'step'        => $steps,
 		];
@@ -444,17 +447,18 @@ class SchemaFactory {
 	 * @param \WP_Post $post Post object.
 	 */
 	private function getDescription( \WP_Post $post ): string {
-		$description = get_post_meta( $post->ID, '_crispy_seo_description', true );
+		$description = \get_post_meta( $post->ID, '_crispy_seo_description', true );
 		if ( ! empty( $description ) ) {
 			return $description;
 		}
 
-		$content = $post->post_content;
-		if ( has_post_meta( $post->ID, '_markdown_content' ) ) {
-			$content = get_post_meta( $post->ID, '_markdown_content', true );
+		$content  = $post->post_content;
+		$markdown = \get_post_meta( $post->ID, '_markdown_content', true );
+		if ( ! empty( $markdown ) ) {
+			$content = $markdown;
 		}
 
-		$text = wp_strip_all_tags( $content );
+		$text = \wp_strip_all_tags( $content );
 		$text = preg_replace( '/\s+/', ' ', $text );
 		$text = trim( $text );
 
@@ -472,12 +476,12 @@ class SchemaFactory {
 	 * @return array<string, mixed>
 	 */
 	private function getAuthorSchema( \WP_Post $post ): array {
-		$author = get_user_by( 'id', $post->post_author );
+		$author = \get_user_by( 'id', $post->post_author );
 
 		return [
 			'@type' => 'Person',
 			'name'  => $author->display_name,
-			'url'   => get_author_posts_url( $author->ID ),
+			'url'   => \get_author_posts_url( $author->ID ),
 		];
 	}
 
@@ -487,13 +491,13 @@ class SchemaFactory {
 	 * @return array<string, mixed>
 	 */
 	private function getPublisherSchema(): array {
-		$orgName = get_option( 'crispy_seo_organization_name', get_bloginfo( 'name' ) );
-		$orgLogo = get_option( 'crispy_seo_organization_logo', '' );
+		$orgName = \get_option( 'crispy_seo_organization_name', \get_bloginfo( 'name' ) );
+		$orgLogo = \get_option( 'crispy_seo_organization_logo', '' );
 
 		$publisher = [
 			'@type' => 'Organization',
 			'name'  => $orgName,
-			'url'   => home_url( '/' ),
+			'url'   => \home_url( '/' ),
 		];
 
 		if ( ! empty( $orgLogo ) ) {

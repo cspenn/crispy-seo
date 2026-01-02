@@ -39,16 +39,16 @@ class MediaReplacer {
 	 * Initialize WordPress hooks.
 	 */
 	private function initHooks(): void {
-		if ( is_admin() ) {
+		if ( \is_admin() ) {
 			// Add replace button to attachment edit screen.
-			add_filter( 'attachment_fields_to_edit', [ $this, 'addReplaceField' ], 10, 2 );
+			\add_filter( 'attachment_fields_to_edit', [ $this, 'addReplaceField' ], 10, 2 );
 
 			// Handle file replacement.
-			add_action( 'wp_ajax_crispy_seo_replace_media', [ $this, 'ajaxReplaceMedia' ] );
-			add_action( 'wp_ajax_crispy_seo_restore_media', [ $this, 'ajaxRestoreMedia' ] );
+			\add_action( 'wp_ajax_crispy_seo_replace_media', [ $this, 'ajaxReplaceMedia' ] );
+			\add_action( 'wp_ajax_crispy_seo_restore_media', [ $this, 'ajaxRestoreMedia' ] );
 
 			// Add metabox to attachment edit.
-			add_action( 'add_meta_boxes_attachment', [ $this, 'addMetaBox' ] );
+			\add_action( 'add_meta_boxes_attachment', [ $this, 'addMetaBox' ] );
 		}
 	}
 
@@ -60,7 +60,7 @@ class MediaReplacer {
 	public function addMetaBox( \WP_Post $post ): void {
 		add_meta_box(
 			'crispy-seo-media-replace',
-			__( 'Replace Media', 'crispy-seo' ),
+			\__( 'Replace Media', 'crispy-seo' ),
 			[ $this, 'renderMetaBox' ],
 			'attachment',
 			'side',
@@ -95,19 +95,19 @@ class MediaReplacer {
 		$hasBackup = $this->hasBackup( $post->ID );
 
 		$html = '<div class="crispy-media-replace-field">';
-		$html .= wp_nonce_field( 'crispy_seo_media_replace', 'crispy_media_replace_nonce', true, false );
+		$html .= \wp_nonce_field( 'crispy_seo_media_replace', 'crispy_media_replace_nonce', true, false );
 		$html .= '<input type="file" name="crispy_replacement_file" id="crispy-replacement-file" />';
-		$html .= '<p class="description">' . esc_html__( 'Select a new file to replace the current one.', 'crispy-seo' ) . '</p>';
+		$html .= '<p class="description">' . esc_html\__( 'Select a new file to replace the current one.', 'crispy-seo' ) . '</p>';
 
 		if ( $hasBackup ) {
-			$html .= '<p><a href="#" class="button crispy-restore-backup" data-id="' . absint( $post->ID ) . '">';
-			$html .= esc_html__( 'Restore Original', 'crispy-seo' ) . '</a></p>';
+			$html .= '<p><a href="#" class="button crispy-restore-backup" data-id="' . \absint( $post->ID ) . '">';
+			$html .= esc_html\__( 'Restore Original', 'crispy-seo' ) . '</a></p>';
 		}
 
 		$html .= '</div>';
 
 		$formFields['crispy_replace'] = [
-			'label' => __( 'Replace File', 'crispy-seo' ),
+			'label' => \__( 'Replace File', 'crispy-seo' ),
 			'input' => 'html',
 			'html'  => $html,
 		];
@@ -125,12 +125,12 @@ class MediaReplacer {
 	 */
 	public function replaceFile( int $attachmentId, string $newFilePath, bool $backup = true ): array {
 		// Validate attachment.
-		$attachment = get_post( $attachmentId );
+		$attachment = \get_post( $attachmentId );
 
 		if ( ! $attachment || $attachment->post_type !== 'attachment' ) {
 			return [
 				'success'             => false,
-				'message'             => __( 'Invalid attachment.', 'crispy-seo' ),
+				'message'             => \__( 'Invalid attachment.', 'crispy-seo' ),
 				'references_updated' => 0,
 			];
 		}
@@ -139,17 +139,17 @@ class MediaReplacer {
 		if ( ! file_exists( $newFilePath ) ) {
 			return [
 				'success'             => false,
-				'message'             => __( 'Replacement file not found.', 'crispy-seo' ),
+				'message'             => \__( 'Replacement file not found.', 'crispy-seo' ),
 				'references_updated' => 0,
 			];
 		}
 
-		$currentFile = get_attached_file( $attachmentId );
+		$currentFile = \get_attached_file( $attachmentId );
 
 		if ( ! $currentFile ) {
 			return [
 				'success'             => false,
-				'message'             => __( 'Current file not found.', 'crispy-seo' ),
+				'message'             => \__( 'Current file not found.', 'crispy-seo' ),
 				'references_updated' => 0,
 			];
 		}
@@ -162,7 +162,7 @@ class MediaReplacer {
 		if ( $newMime === false ) {
 			return [
 				'success'             => false,
-				'message'             => __( 'Unable to determine MIME type of replacement file.', 'crispy-seo' ),
+				'message'             => \__( 'Unable to determine MIME type of replacement file.', 'crispy-seo' ),
 				'references_updated' => 0,
 			];
 		}
@@ -172,7 +172,7 @@ class MediaReplacer {
 				'success'             => false,
 				'message'             => sprintf(
 					/* translators: 1: current MIME type, 2: new MIME type */
-					__( 'MIME type mismatch: %1$s vs %2$s', 'crispy-seo' ),
+					\__( 'MIME type mismatch: %1$s vs %2$s', 'crispy-seo' ),
 					$currentMime,
 					$newMime
 				),
@@ -185,13 +185,13 @@ class MediaReplacer {
 			$this->createBackup( $attachmentId, $currentFile );
 		}
 
-		$oldUrl = wp_get_attachment_url( $attachmentId );
+		$oldUrl = \wp_get_attachment_url( $attachmentId );
 
 		// Replace the file.
 		if ( ! copy( $newFilePath, $currentFile ) ) {
 			return [
 				'success'             => false,
-				'message'             => __( 'Failed to copy replacement file.', 'crispy-seo' ),
+				'message'             => \__( 'Failed to copy replacement file.', 'crispy-seo' ),
 				'references_updated' => 0,
 			];
 		}
@@ -203,7 +203,7 @@ class MediaReplacer {
 
 		// Update MIME type if changed.
 		if ( $currentMime !== $newMime ) {
-			wp_update_post(
+			\wp_update_post(
 				[
 					'ID'             => $attachmentId,
 					'post_mime_type' => $newMime,
@@ -212,7 +212,7 @@ class MediaReplacer {
 		}
 
 		// Update references if URL structure changed.
-		$newUrl            = wp_get_attachment_url( $attachmentId );
+		$newUrl            = \wp_get_attachment_url( $attachmentId );
 		$referencesUpdated = 0;
 
 		if ( $oldUrl !== $newUrl ) {
@@ -220,16 +220,16 @@ class MediaReplacer {
 		}
 
 		// Clear optimization metadata.
-		delete_post_meta( $attachmentId, '_crispy_seo_optimized_at' );
-		delete_post_meta( $attachmentId, '_crispy_seo_original_size' );
-		delete_post_meta( $attachmentId, '_crispy_seo_optimized_size' );
+		\delete_post_meta( $attachmentId, '_crispy_seo_optimized_at' );
+		\delete_post_meta( $attachmentId, '_crispy_seo_original_size' );
+		\delete_post_meta( $attachmentId, '_crispy_seo_optimized_size' );
 
 		// Record replacement.
-		update_post_meta( $attachmentId, '_crispy_seo_replaced_at', current_time( 'mysql' ) );
+		\update_post_meta( $attachmentId, '_crispy_seo_replaced_at', current_time( 'mysql' ) );
 
 		return [
 			'success'             => true,
-			'message'             => __( 'File replaced successfully.', 'crispy-seo' ),
+			'message'             => \__( 'File replaced successfully.', 'crispy-seo' ),
 			'references_updated' => $referencesUpdated,
 		];
 	}
@@ -270,17 +270,17 @@ class MediaReplacer {
 	 * @return bool Success.
 	 */
 	private function regenerateThumbnails( int $attachmentId ): bool {
-		$filePath = get_attached_file( $attachmentId );
+		$filePath = \get_attached_file( $attachmentId );
 
 		if ( ! $filePath ) {
 			return false;
 		}
 
 		// Delete old thumbnails.
-		$metadata = wp_get_attachment_metadata( $attachmentId );
+		$metadata = \wp_get_attachment_metadata( $attachmentId );
 
 		if ( is_array( $metadata ) && ! empty( $metadata['sizes'] ) ) {
-			$uploadDir = wp_upload_dir();
+			$uploadDir = \wp_upload_dir();
 			$baseDir   = dirname( $filePath );
 
 			foreach ( $metadata['sizes'] as $size ) {
@@ -292,10 +292,10 @@ class MediaReplacer {
 		}
 
 		// Generate new metadata and thumbnails.
-		$newMetadata = wp_generate_attachment_metadata( $attachmentId, $filePath );
+		$newMetadata = \wp_generate_attachment_metadata( $attachmentId, $filePath );
 
 		if ( $newMetadata ) {
-			wp_update_attachment_metadata( $attachmentId, $newMetadata );
+			\wp_update_attachment_metadata( $attachmentId, $newMetadata );
 			return true;
 		}
 
@@ -508,7 +508,7 @@ class MediaReplacer {
 	 */
 	public function hasBackup( int $attachmentId ): bool {
 		$backupDir = OptimizationInstaller::getBackupDirectory();
-		$filePath  = get_attached_file( $attachmentId );
+		$filePath  = \get_attached_file( $attachmentId );
 
 		if ( ! $filePath ) {
 			return false;
@@ -527,12 +527,12 @@ class MediaReplacer {
 	 */
 	public function restoreBackup( int $attachmentId ): array {
 		$backupDir = OptimizationInstaller::getBackupDirectory();
-		$filePath  = get_attached_file( $attachmentId );
+		$filePath  = \get_attached_file( $attachmentId );
 
 		if ( ! $filePath ) {
 			return [
 				'success' => false,
-				'message' => __( 'Current file not found.', 'crispy-seo' ),
+				'message' => \__( 'Current file not found.', 'crispy-seo' ),
 			];
 		}
 
@@ -541,14 +541,14 @@ class MediaReplacer {
 		if ( ! file_exists( $backupPath ) ) {
 			return [
 				'success' => false,
-				'message' => __( 'No backup found.', 'crispy-seo' ),
+				'message' => \__( 'No backup found.', 'crispy-seo' ),
 			];
 		}
 
 		if ( ! copy( $backupPath, $filePath ) ) {
 			return [
 				'success' => false,
-				'message' => __( 'Failed to restore backup.', 'crispy-seo' ),
+				'message' => \__( 'Failed to restore backup.', 'crispy-seo' ),
 			];
 		}
 
@@ -556,12 +556,12 @@ class MediaReplacer {
 		$this->regenerateThumbnails( $attachmentId );
 
 		// Clear optimization metadata.
-		delete_post_meta( $attachmentId, '_crispy_seo_optimized_at' );
-		delete_post_meta( $attachmentId, '_crispy_seo_replaced_at' );
+		\delete_post_meta( $attachmentId, '_crispy_seo_optimized_at' );
+		\delete_post_meta( $attachmentId, '_crispy_seo_replaced_at' );
 
 		return [
 			'success' => true,
-			'message' => __( 'Original file restored.', 'crispy-seo' ),
+			'message' => \__( 'Original file restored.', 'crispy-seo' ),
 		];
 	}
 
@@ -569,21 +569,21 @@ class MediaReplacer {
 	 * AJAX: Replace media file.
 	 */
 	public function ajaxReplaceMedia(): void {
-		check_ajax_referer( 'crispy_seo_media_replace', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_media_replace', 'nonce' );
 
-		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'upload_files' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$attachmentId = isset( $_POST['attachment_id'] ) ? (int) $_POST['attachment_id'] : 0;
 
 		if ( $attachmentId <= 0 ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid attachment ID.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Invalid attachment ID.', 'crispy-seo' ) ] );
 		}
 
 		// Handle file upload.
 		if ( empty( $_FILES['file'] ) ) {
-			wp_send_json_error( [ 'message' => __( 'No file uploaded.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'No file uploaded.', 'crispy-seo' ) ] );
 		}
 
 		$file = $_FILES['file'];
@@ -597,7 +597,7 @@ class MediaReplacer {
 		$uploadedFile = wp_handle_upload( $file, $uploadOverrides );
 
 		if ( isset( $uploadedFile['error'] ) ) {
-			wp_send_json_error( [ 'message' => $uploadedFile['error'] ] );
+			\wp_send_json_error( [ 'message' => $uploadedFile['error'] ] );
 		}
 
 		// Replace the file.
@@ -609,9 +609,9 @@ class MediaReplacer {
 		}
 
 		if ( $result['success'] ) {
-			wp_send_json_success( $result );
+			\wp_send_json_success( $result );
 		} else {
-			wp_send_json_error( $result );
+			\wp_send_json_error( $result );
 		}
 	}
 
@@ -619,24 +619,24 @@ class MediaReplacer {
 	 * AJAX: Restore media backup.
 	 */
 	public function ajaxRestoreMedia(): void {
-		check_ajax_referer( 'crispy_seo_media_replace', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_media_replace', 'nonce' );
 
-		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'upload_files' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$attachmentId = isset( $_POST['attachment_id'] ) ? (int) $_POST['attachment_id'] : 0;
 
 		if ( $attachmentId <= 0 ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid attachment ID.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Invalid attachment ID.', 'crispy-seo' ) ] );
 		}
 
 		$result = $this->restoreBackup( $attachmentId );
 
 		if ( $result['success'] ) {
-			wp_send_json_success( $result );
+			\wp_send_json_success( $result );
 		} else {
-			wp_send_json_error( $result );
+			\wp_send_json_error( $result );
 		}
 	}
 }

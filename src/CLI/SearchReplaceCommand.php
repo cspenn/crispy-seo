@@ -116,7 +116,7 @@ class SearchReplaceCommand {
 		WP_CLI::log( sprintf( 'Found %d occurrences in %d tables.', $totalMatches, $tablesAffected ) );
 
 		if ( $format === 'json' ) {
-			WP_CLI::log( wp_json_encode( $preview, JSON_PRETTY_PRINT ) );
+			WP_CLI::log( \wp_json_encode( $preview, JSON_PRETTY_PRINT ) );
 			return;
 		}
 

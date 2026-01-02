@@ -41,7 +41,7 @@ class RedirectInstaller {
 	 * @return bool True on success, false on failure.
 	 */
 	public function install(): bool {
-		$currentVersion = get_option( self::VERSION_OPTION, '0' );
+		$currentVersion = \get_option( self::VERSION_OPTION, '0' );
 
 		if ( version_compare( $currentVersion, self::DB_VERSION, '>=' ) ) {
 			return true; // Already up to date.
@@ -50,7 +50,7 @@ class RedirectInstaller {
 		$result = $this->createTable();
 
 		if ( $result ) {
-			update_option( self::VERSION_OPTION, self::DB_VERSION );
+			\update_option( self::VERSION_OPTION, self::DB_VERSION );
 
 			// Migrate data from old options-based storage if exists.
 			$this->migrateFromOptions();
@@ -90,7 +90,7 @@ class RedirectInstaller {
 		) {$charset};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
+		\dbDelta( $sql );
 
 		// Verify table was created.
 		$tableExists = $wpdb->get_var(
@@ -109,7 +109,7 @@ class RedirectInstaller {
 	 * @return int Number of redirects migrated.
 	 */
 	private function migrateFromOptions(): int {
-		$oldRedirects = get_option( 'crispy_seo_redirects', [] );
+		$oldRedirects = \get_option( 'crispy_seo_redirects', [] );
 
 		if ( empty( $oldRedirects ) || ! is_array( $oldRedirects ) ) {
 			return 0;
@@ -139,11 +139,11 @@ class RedirectInstaller {
 			$inserted = $wpdb->insert(
 				$tableName,
 				[
-					'source_path'   => sanitize_text_field( $source ),
+					'source_path'   => \sanitize_text_field( $source ),
 					'target_url'    => esc_url_raw( $redirect['target'] ),
-					'redirect_type' => absint( $redirect['type'] ?? 301 ),
+					'redirect_type' => \absint( $redirect['type'] ?? 301 ),
 					'match_type'    => $matchType,
-					'hit_count'     => absint( $redirect['hits'] ?? 0 ),
+					'hit_count'     => \absint( $redirect['hits'] ?? 0 ),
 					'created_at'    => $redirect['created'] ?? $now,
 					'updated_at'    => $now,
 					'enabled'       => 1,
@@ -158,7 +158,7 @@ class RedirectInstaller {
 
 		// Mark migration as complete but don't delete old data yet.
 		if ( $migrated > 0 ) {
-			update_option( 'crispy_seo_redirects_migrated', true );
+			\update_option( 'crispy_seo_redirects_migrated', true );
 		}
 
 		return $migrated;
@@ -177,8 +177,8 @@ class RedirectInstaller {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Uninstall operation.
 		$wpdb->query( "DROP TABLE IF EXISTS {$tableName}" );
 
-		delete_option( self::VERSION_OPTION );
-		delete_option( 'crispy_seo_redirects_migrated' );
+		\delete_option( self::VERSION_OPTION );
+		\delete_option( 'crispy_seo_redirects_migrated' );
 
 		return true;
 	}

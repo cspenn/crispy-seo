@@ -41,7 +41,7 @@ class NotFoundInstaller {
 	 * @return bool True on success, false on failure.
 	 */
 	public function install(): bool {
-		$currentVersion = get_option( self::VERSION_OPTION, '0' );
+		$currentVersion = \get_option( self::VERSION_OPTION, '0' );
 
 		if ( version_compare( $currentVersion, self::DB_VERSION, '>=' ) ) {
 			return true; // Already up to date.
@@ -50,7 +50,7 @@ class NotFoundInstaller {
 		$result = $this->createTable();
 
 		if ( $result ) {
-			update_option( self::VERSION_OPTION, self::DB_VERSION );
+			\update_option( self::VERSION_OPTION, self::DB_VERSION );
 		}
 
 		return $result;
@@ -81,7 +81,7 @@ class NotFoundInstaller {
 		) {$charset};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
+		\dbDelta( $sql );
 
 		// Verify table was created.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Installation check.
@@ -108,10 +108,10 @@ class NotFoundInstaller {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall operation.
 		$wpdb->query( "DROP TABLE IF EXISTS {$tableName}" );
 
-		delete_option( self::VERSION_OPTION );
-		delete_option( 'crispy_seo_404_page_id' );
-		delete_option( 'crispy_seo_404_log_retention_days' );
-		delete_option( 'crispy_seo_404_log_enabled' );
+		\delete_option( self::VERSION_OPTION );
+		\delete_option( 'crispy_seo_404_page_id' );
+		\delete_option( 'crispy_seo_404_log_retention_days' );
+		\delete_option( 'crispy_seo_404_log_enabled' );
 
 		return true;
 	}
@@ -145,7 +145,7 @@ class NotFoundInstaller {
 		global $wpdb;
 
 		$tableName = self::getTableName();
-		$cutoffDate = gmdate( 'Y-m-d H:i:s', strtotime( "-{$daysToKeep} days" ) );
+		$cutoffDate = \gmdate( 'Y-m-d H:i:s', strtotime( "-{$daysToKeep} days" ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup operation.
 		$deleted = $wpdb->query(
@@ -155,6 +155,6 @@ class NotFoundInstaller {
 			)
 		);
 
-		return is_int( $deleted ) ? $deleted : 0;
+		return \is_int( $deleted ) ? $deleted : 0;
 	}
 }

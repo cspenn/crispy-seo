@@ -18,16 +18,16 @@ class Sitemap {
 	 * Register rewrite rules for sitemap.
 	 */
 	public function registerRewriteRules(): void {
-		if ( ! get_option( 'crispy_seo_sitemap_enabled', true ) ) {
+		if ( ! \get_option( 'crispy_seo_sitemap_enabled', true ) ) {
 			return;
 		}
 
-		add_action( 'init', [ $this, 'addRewriteRules' ] );
-		add_filter( 'query_vars', [ $this, 'addQueryVars' ] );
-		add_action( 'template_redirect', [ $this, 'handleSitemapRequest' ] );
+		\add_action( 'init', [ $this, 'addRewriteRules' ] );
+		\add_filter( 'query_vars', [ $this, 'addQueryVars' ] );
+		\add_action( 'template_redirect', [ $this, 'handleSitemapRequest' ] );
 
 		// Add sitemap to robots.txt.
-		add_filter( 'robots_txt', [ $this, 'addSitemapToRobots' ], 10, 2 );
+		\add_filter( 'robots_txt', [ $this, 'addSitemapToRobots' ], 10, 2 );
 	}
 
 	/**
@@ -69,13 +69,13 @@ class Sitemap {
 	 * Handle sitemap request.
 	 */
 	public function handleSitemapRequest(): void {
-		$sitemap = get_query_var( 'crispy_sitemap' );
+		$sitemap = \get_query_var( 'crispy_sitemap' );
 
 		if ( empty( $sitemap ) ) {
 			return;
 		}
 
-		$page = (int) get_query_var( 'crispy_sitemap_page', 1 );
+		$page = (int) \get_query_var( 'crispy_sitemap_page', 1 );
 
 		if ( $sitemap === 'index' ) {
 			$this->renderIndex();
@@ -103,13 +103,13 @@ class Sitemap {
 			$pages = (int) ceil( $count / 1000 );
 
 			for ( $i = 1; $i <= $pages; $i++ ) {
-				$url     = home_url( "/sitemap-{$postType}-{$i}.xml" );
+				$url     = \home_url( "/sitemap-{$postType}-{$i}.xml" );
 				$lastmod = $this->getPostTypeLastMod( $postType );
 
 				echo "  <sitemap>\n";
-				echo '    <loc>' . esc_url( $url ) . "</loc>\n";
+				echo '    <loc>' . \esc_url( $url ) . "</loc>\n";
 				if ( $lastmod ) {
-					echo '    <lastmod>' . esc_html( $lastmod ) . "</lastmod>\n";
+					echo '    <lastmod>' . \esc_html( $lastmod ) . "</lastmod>\n";
 				}
 				echo "  </sitemap>\n";
 			}
@@ -120,9 +120,9 @@ class Sitemap {
 		foreach ( $taxonomies as $taxonomy ) {
 			$count = $this->getTaxonomyCount( $taxonomy );
 			if ( $count > 0 ) {
-				$url = home_url( "/sitemap-{$taxonomy}-1.xml" );
+				$url = \home_url( "/sitemap-{$taxonomy}-1.xml" );
 				echo "  <sitemap>\n";
-				echo '    <loc>' . esc_url( $url ) . "</loc>\n";
+				echo '    <loc>' . \esc_url( $url ) . "</loc>\n";
 				echo "  </sitemap>\n";
 			}
 		}
@@ -164,7 +164,7 @@ class Sitemap {
 	private function renderPostTypeSitemap( string $postType, int $page ): void {
 		$offset = ( $page - 1 ) * 1000;
 
-		$posts = get_posts(
+		$posts = \get_posts(
 			[
 				'post_type'              => $postType,
 				'post_status'            => 'publish',
@@ -180,16 +180,16 @@ class Sitemap {
 
 		foreach ( $posts as $post ) {
 			// Skip noindexed posts.
-			if ( get_post_meta( $post->ID, '_crispy_seo_noindex', true ) === '1' ) {
+			if ( \get_post_meta( $post->ID, '_crispy_seo_noindex', true ) === '1' ) {
 				continue;
 			}
 
-			$url     = get_permalink( $post->ID );
-			$lastmod = get_the_modified_date( 'c', $post );
+			$url     = \get_permalink( $post->ID );
+			$lastmod = \get_the_modified_date( 'c', $post );
 
 			echo "  <url>\n";
-			echo '    <loc>' . esc_url( $url ) . "</loc>\n";
-			echo '    <lastmod>' . esc_html( $lastmod ) . "</lastmod>\n";
+			echo '    <loc>' . \esc_url( $url ) . "</loc>\n";
+			echo '    <lastmod>' . \esc_html( $lastmod ) . "</lastmod>\n";
 			echo "    <changefreq>weekly</changefreq>\n";
 			echo '    <priority>' . $this->getPriority( $post ) . "</priority>\n";
 			echo "  </url>\n";
@@ -205,7 +205,7 @@ class Sitemap {
 	private function renderTaxonomySitemap( string $taxonomy, int $page ): void {
 		$offset = ( $page - 1 ) * 1000;
 
-		$terms = get_terms(
+		$terms = \get_terms(
 			[
 				'taxonomy'   => $taxonomy,
 				'hide_empty' => true,
@@ -214,18 +214,18 @@ class Sitemap {
 			]
 		);
 
-		if ( is_wp_error( $terms ) ) {
+		if ( \is_wp_error( $terms ) ) {
 			return;
 		}
 
 		foreach ( $terms as $term ) {
-			$url = get_term_link( $term );
-			if ( is_wp_error( $url ) ) {
+			$url = \get_term_link( $term );
+			if ( \is_wp_error( $url ) ) {
 				continue;
 			}
 
 			echo "  <url>\n";
-			echo '    <loc>' . esc_url( $url ) . "</loc>\n";
+			echo '    <loc>' . \esc_url( $url ) . "</loc>\n";
 			echo "    <changefreq>weekly</changefreq>\n";
 			echo "    <priority>0.6</priority>\n";
 			echo "  </url>\n";
@@ -238,11 +238,11 @@ class Sitemap {
 	 * @return array<string>
 	 */
 	private function getEnabledPostTypes(): array {
-		$enabled = get_option( 'crispy_seo_sitemap_post_types', [] );
+		$enabled = \get_option( 'crispy_seo_sitemap_post_types', [] );
 
 		if ( empty( $enabled ) ) {
 			// Default to all public post types.
-			$postTypes = get_post_types( [ 'public' => true ], 'names' );
+			$postTypes = \get_post_types( [ 'public' => true ], 'names' );
 			unset( $postTypes['attachment'] );
 			return array_values( $postTypes );
 		}
@@ -256,7 +256,7 @@ class Sitemap {
 	 * @return array<string>
 	 */
 	private function getEnabledTaxonomies(): array {
-		$enabled = get_option( 'crispy_seo_sitemap_taxonomies', [] );
+		$enabled = \get_option( 'crispy_seo_sitemap_taxonomies', [] );
 
 		if ( empty( $enabled ) ) {
 			// Default to category and post_tag.
@@ -296,7 +296,7 @@ class Sitemap {
 	 * @param string $postType Post type.
 	 */
 	private function getPostTypeLastMod( string $postType ): ?string {
-		$posts = get_posts(
+		$posts = \get_posts(
 			[
 				'post_type'      => $postType,
 				'post_status'    => 'publish',
@@ -308,7 +308,7 @@ class Sitemap {
 		);
 
 		if ( ! empty( $posts ) ) {
-			return get_the_modified_date( 'c', $posts[0] );
+			return \get_the_modified_date( 'c', $posts[0] );
 		}
 
 		return null;
@@ -321,7 +321,7 @@ class Sitemap {
 	 */
 	private function getPriority( \WP_Post $post ): string {
 		// Front page gets highest priority.
-		$frontPageId = (int) get_option( 'page_on_front' );
+		$frontPageId = (int) \get_option( 'page_on_front' );
 		if ( $post->ID === $frontPageId ) {
 			return '1.0';
 		}
@@ -358,7 +358,7 @@ class Sitemap {
 			return $output;
 		}
 
-		$sitemapUrl = home_url( '/sitemap.xml' );
+		$sitemapUrl = \home_url( '/sitemap.xml' );
 
 		if ( strpos( $output, 'Sitemap:' ) === false ) {
 			$output .= "\nSitemap: " . $sitemapUrl . "\n";
@@ -371,10 +371,10 @@ class Sitemap {
 	 * Ping search engines about sitemap update.
 	 */
 	public function pingSearchEngines(): void {
-		$sitemapUrl = urlencode( home_url( '/sitemap.xml' ) );
+		$sitemapUrl = urlencode( \home_url( '/sitemap.xml' ) );
 
 		// Ping Google.
-		wp_remote_get(
+		\wp_remote_get(
 			"https://www.google.com/ping?sitemap={$sitemapUrl}",
 			[
 				'blocking' => false,
@@ -382,7 +382,7 @@ class Sitemap {
 		);
 
 		// Ping Bing.
-		wp_remote_get(
+		\wp_remote_get(
 			"https://www.bing.com/ping?sitemap={$sitemapUrl}",
 			[
 				'blocking' => false,

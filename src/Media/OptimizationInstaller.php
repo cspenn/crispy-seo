@@ -41,7 +41,7 @@ class OptimizationInstaller {
 	 * @return bool True on success, false on failure.
 	 */
 	public function install(): bool {
-		$currentVersion = get_option( self::VERSION_OPTION, '0' );
+		$currentVersion = \get_option( self::VERSION_OPTION, '0' );
 
 		if ( version_compare( $currentVersion, self::DB_VERSION, '>=' ) ) {
 			return true; // Already up to date.
@@ -50,7 +50,7 @@ class OptimizationInstaller {
 		$result = $this->createTable();
 
 		if ( $result ) {
-			update_option( self::VERSION_OPTION, self::DB_VERSION );
+			\update_option( self::VERSION_OPTION, self::DB_VERSION );
 			$this->ensureBackupDirectory();
 		}
 
@@ -90,7 +90,7 @@ class OptimizationInstaller {
 		) {$charset};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
+		\dbDelta( $sql );
 
 		// Verify table was created.
 		return $wpdb->get_var(
@@ -133,8 +133,8 @@ class OptimizationInstaller {
 	 * @return string Backup directory path.
 	 */
 	public static function getBackupDirectory(): string {
-		$uploadDir = wp_upload_dir();
-		return trailingslashit( $uploadDir['basedir'] ) . 'crispy-seo-backups';
+		$uploadDir = \wp_upload_dir();
+		return \trailingslashit( $uploadDir['basedir'] ) . 'crispy-seo-backups';
 	}
 
 	/**
@@ -151,7 +151,7 @@ class OptimizationInstaller {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Uninstall operation.
 		$wpdb->query( "DROP TABLE IF EXISTS {$tableName}" );
 
-		delete_option( self::VERSION_OPTION );
+		\delete_option( self::VERSION_OPTION );
 
 		// Optionally delete backup files.
 		if ( $deleteBackups ) {

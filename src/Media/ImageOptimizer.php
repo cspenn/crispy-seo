@@ -55,26 +55,26 @@ class ImageOptimizer {
 	 */
 	private function initHooks(): void {
 		// Auto-optimize on upload.
-		add_filter( 'wp_generate_attachment_metadata', [ $this, 'optimizeOnUpload' ], 10, 2 );
+		\add_filter( 'wp_generate_attachment_metadata', [ $this, 'optimizeOnUpload' ], 10, 2 );
 
 		// Admin hooks.
-		if ( is_admin() ) {
-			add_action( 'admin_menu', [ $this, 'registerAdminPage' ] );
-			add_action( 'wp_ajax_crispy_seo_optimize_image', [ $this, 'ajaxOptimizeImage' ] );
-			add_action( 'wp_ajax_crispy_seo_queue_all_images', [ $this, 'ajaxQueueAll' ] );
-			add_action( 'wp_ajax_crispy_seo_process_queue', [ $this, 'ajaxProcessQueue' ] );
-			add_action( 'wp_ajax_crispy_seo_get_optimization_stats', [ $this, 'ajaxGetStats' ] );
+		if ( \is_admin() ) {
+			\add_action( 'admin_menu', [ $this, 'registerAdminPage' ] );
+			\add_action( 'wp_ajax_crispy_seo_optimize_image', [ $this, 'ajaxOptimizeImage' ] );
+			\add_action( 'wp_ajax_crispy_seo_queue_all_images', [ $this, 'ajaxQueueAll' ] );
+			\add_action( 'wp_ajax_crispy_seo_process_queue', [ $this, 'ajaxProcessQueue' ] );
+			\add_action( 'wp_ajax_crispy_seo_get_optimization_stats', [ $this, 'ajaxGetStats' ] );
 
 			// Add media library column.
-			add_filter( 'manage_media_columns', [ $this, 'addMediaColumn' ] );
-			add_action( 'manage_media_custom_column', [ $this, 'renderMediaColumn' ], 10, 2 );
+			\add_filter( 'manage_media_columns', [ $this, 'addMediaColumn' ] );
+			\add_action( 'manage_media_custom_column', [ $this, 'renderMediaColumn' ], 10, 2 );
 		}
 
 		// WP-Cron batch processing.
-		add_action( 'crispy_seo_process_image_queue', [ $this, 'processQueueBatch' ] );
+		\add_action( 'crispy_seo_process_image_queue', [ $this, 'processQueueBatch' ] );
 
-		if ( ! wp_next_scheduled( 'crispy_seo_process_image_queue' ) ) {
-			wp_schedule_event( time(), 'hourly', 'crispy_seo_process_image_queue' );
+		if ( ! \wp_next_scheduled( 'crispy_seo_process_image_queue' ) ) {
+			\wp_schedule_event( time(), 'hourly', 'crispy_seo_process_image_queue' );
 		}
 	}
 
@@ -84,8 +84,8 @@ class ImageOptimizer {
 	public function registerAdminPage(): void {
 		add_submenu_page(
 			'crispy-seo',
-			__( 'Image Optimization', 'crispy-seo' ),
-			__( 'Image Optimization', 'crispy-seo' ),
+			\__( 'Image Optimization', 'crispy-seo' ),
+			\__( 'Image Optimization', 'crispy-seo' ),
 			'manage_options',
 			'crispy-seo-image-optimization',
 			[ $this, 'renderAdminPage' ]
@@ -96,7 +96,7 @@ class ImageOptimizer {
 	 * Render admin page.
 	 */
 	public function renderAdminPage(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! \current_user_can( 'manage_options' ) ) {
 			return;
 		}
 		include CRISPY_SEO_DIR . 'views/admin-image-optimization.php';
@@ -111,7 +111,7 @@ class ImageOptimizer {
 	 */
 	public function optimizeOnUpload( array $metadata, int $attachmentId ): array {
 		// Check if auto-optimization is enabled.
-		$autoOptimize = get_option( 'crispy_seo_auto_optimize', true );
+		$autoOptimize = \get_option( 'crispy_seo_auto_optimize', true );
 
 		if ( ! $autoOptimize ) {
 			return $metadata;
@@ -153,7 +153,7 @@ class ImageOptimizer {
 		$tableName = $wpdb->prefix . self::QUEUE_TABLE;
 
 		// Get original file size.
-		$filePath = get_attached_file( $attachmentId );
+		$filePath = \get_attached_file( $attachmentId );
 		if ( ! $filePath || ! file_exists( $filePath ) ) {
 			return false;
 		}
@@ -198,21 +198,21 @@ class ImageOptimizer {
 	 */
 	public function optimizeImage( int $attachmentId, array $options = [] ): array {
 		$defaults = [
-			'jpeg_quality'    => (int) get_option( 'crispy_seo_jpeg_quality', self::DEFAULT_JPEG_QUALITY ),
-			'png_compression' => (int) get_option( 'crispy_seo_png_compression', self::DEFAULT_PNG_COMPRESSION ),
-			'webp_quality'    => (int) get_option( 'crispy_seo_webp_quality', self::DEFAULT_WEBP_QUALITY ),
-			'create_webp'     => (bool) get_option( 'crispy_seo_create_webp', true ),
+			'jpeg_quality'    => (int) \get_option( 'crispy_seo_jpeg_quality', self::DEFAULT_JPEG_QUALITY ),
+			'png_compression' => (int) \get_option( 'crispy_seo_png_compression', self::DEFAULT_PNG_COMPRESSION ),
+			'webp_quality'    => (int) \get_option( 'crispy_seo_webp_quality', self::DEFAULT_WEBP_QUALITY ),
+			'create_webp'     => (bool) \get_option( 'crispy_seo_create_webp', true ),
 			'backup'          => true,
 		];
 
-		$options = wp_parse_args( $options, $defaults );
+		$options = \wp_parse_args( $options, $defaults );
 
-		$filePath = get_attached_file( $attachmentId );
+		$filePath = \get_attached_file( $attachmentId );
 
 		if ( ! $filePath || ! file_exists( $filePath ) ) {
 			return [
 				'success'         => false,
-				'message'         => __( 'File not found.', 'crispy-seo' ),
+				'message'         => \__( 'File not found.', 'crispy-seo' ),
 				'savings_bytes'   => 0,
 				'savings_percent' => 0.0,
 			];
@@ -231,7 +231,7 @@ class ImageOptimizer {
 			'image/jpeg' => $this->optimizeJpeg( $filePath, $options['jpeg_quality'] ),
 			'image/png'  => $this->optimizePng( $filePath, $options['png_compression'] ),
 			'image/gif'  => $this->optimizeGif( $filePath ),
-			default      => [ 'success' => false, 'message' => __( 'Unsupported image type.', 'crispy-seo' ) ],
+			default      => [ 'success' => false, 'message' => \__( 'Unsupported image type.', 'crispy-seo' ) ],
 		};
 
 		if ( ! $result['success'] ) {
@@ -256,7 +256,7 @@ class ImageOptimizer {
 			'success'         => true,
 			'message'         => sprintf(
 				/* translators: %s: percentage saved */
-				__( 'Optimized successfully. Saved %s%%', 'crispy-seo' ),
+				\__( 'Optimized successfully. Saved %s%%', 'crispy-seo' ),
 				$savingsPercent
 			),
 			'savings_bytes'   => $savingsBytes,
@@ -292,7 +292,7 @@ class ImageOptimizer {
 			$image = imagecreatefromjpeg( $filePath );
 
 			if ( $image === false ) {
-				return [ 'success' => false, 'message' => __( 'Failed to read JPEG.', 'crispy-seo' ) ];
+				return [ 'success' => false, 'message' => \__( 'Failed to read JPEG.', 'crispy-seo' ) ];
 			}
 
 			$result = imagejpeg( $image, $filePath, $quality );
@@ -303,7 +303,7 @@ class ImageOptimizer {
 			}
 		}
 
-		return [ 'success' => false, 'message' => __( 'No image library available.', 'crispy-seo' ) ];
+		return [ 'success' => false, 'message' => \__( 'No image library available.', 'crispy-seo' ) ];
 	}
 
 	/**
@@ -334,7 +334,7 @@ class ImageOptimizer {
 			$image = imagecreatefrompng( $filePath );
 
 			if ( $image === false ) {
-				return [ 'success' => false, 'message' => __( 'Failed to read PNG.', 'crispy-seo' ) ];
+				return [ 'success' => false, 'message' => \__( 'Failed to read PNG.', 'crispy-seo' ) ];
 			}
 
 			// Preserve transparency.
@@ -348,7 +348,7 @@ class ImageOptimizer {
 			}
 		}
 
-		return [ 'success' => false, 'message' => __( 'No image library available.', 'crispy-seo' ) ];
+		return [ 'success' => false, 'message' => \__( 'No image library available.', 'crispy-seo' ) ];
 	}
 
 	/**
@@ -373,7 +373,7 @@ class ImageOptimizer {
 		}
 
 		// GD cannot efficiently optimize GIF.
-		return [ 'success' => true, 'message' => __( 'GIF optimization limited without Imagick.', 'crispy-seo' ) ];
+		return [ 'success' => true, 'message' => \__( 'GIF optimization limited without Imagick.', 'crispy-seo' ) ];
 	}
 
 	/**
@@ -472,9 +472,9 @@ class ImageOptimizer {
 	 * @param int $newSize      New file size.
 	 */
 	private function updateOptimizationMeta( int $attachmentId, int $originalSize, int $newSize ): void {
-		update_post_meta( $attachmentId, '_crispy_seo_original_size', $originalSize );
-		update_post_meta( $attachmentId, '_crispy_seo_optimized_size', $newSize );
-		update_post_meta( $attachmentId, '_crispy_seo_optimized_at', current_time( 'mysql' ) );
+		\update_post_meta( $attachmentId, '_crispy_seo_original_size', $originalSize );
+		\update_post_meta( $attachmentId, '_crispy_seo_optimized_size', $newSize );
+		\update_post_meta( $attachmentId, '_crispy_seo_optimized_at', current_time( 'mysql' ) );
 	}
 
 	/**
@@ -612,7 +612,7 @@ class ImageOptimizer {
 	 * @return array Modified columns.
 	 */
 	public function addMediaColumn( array $columns ): array {
-		$columns['crispy_optimization'] = __( 'Optimization', 'crispy-seo' );
+		$columns['crispy_optimization'] = \__( 'Optimization', 'crispy-seo' );
 		return $columns;
 	}
 
@@ -634,22 +634,22 @@ class ImageOptimizer {
 			return;
 		}
 
-		$optimizedAt = get_post_meta( $postId, '_crispy_seo_optimized_at', true );
+		$optimizedAt = \get_post_meta( $postId, '_crispy_seo_optimized_at', true );
 
 		if ( $optimizedAt ) {
-			$originalSize  = (int) get_post_meta( $postId, '_crispy_seo_original_size', true );
-			$optimizedSize = (int) get_post_meta( $postId, '_crispy_seo_optimized_size', true );
+			$originalSize  = (int) \get_post_meta( $postId, '_crispy_seo_original_size', true );
+			$optimizedSize = (int) \get_post_meta( $postId, '_crispy_seo_optimized_size', true );
 			$savings       = $originalSize > 0 ? round( ( ( $originalSize - $optimizedSize ) / $originalSize ) * 100, 1 ) : 0;
 
 			printf(
 				'<span class="dashicons dashicons-yes" style="color: green;"></span> %s%%',
-				esc_html( $savings )
+				\esc_html( $savings )
 			);
 		} else {
 			printf(
 				'<button type="button" class="button button-small crispy-optimize-btn" data-id="%d">%s</button>',
-				esc_attr( $postId ),
-				esc_html__( 'Optimize', 'crispy-seo' )
+				\esc_attr( $postId ),
+				esc_html\__( 'Optimize', 'crispy-seo' )
 			);
 		}
 	}
@@ -658,24 +658,24 @@ class ImageOptimizer {
 	 * AJAX: Optimize single image.
 	 */
 	public function ajaxOptimizeImage(): void {
-		check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
 
-		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'upload_files' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$attachmentId = isset( $_POST['attachment_id'] ) ? (int) $_POST['attachment_id'] : 0;
 
 		if ( $attachmentId <= 0 ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid attachment ID.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Invalid attachment ID.', 'crispy-seo' ) ] );
 		}
 
 		$result = $this->optimizeImage( $attachmentId );
 
 		if ( $result['success'] ) {
-			wp_send_json_success( $result );
+			\wp_send_json_success( $result );
 		} else {
-			wp_send_json_error( $result );
+			\wp_send_json_error( $result );
 		}
 	}
 
@@ -683,10 +683,10 @@ class ImageOptimizer {
 	 * AJAX: Queue all unoptimized images.
 	 */
 	public function ajaxQueueAll(): void {
-		check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		global $wpdb;
@@ -709,11 +709,11 @@ class ImageOptimizer {
 			}
 		}
 
-		wp_send_json_success(
+		\wp_send_json_success(
 			[
 				'message' => sprintf(
 					/* translators: %d: number of images queued */
-					__( '%d images queued for optimization.', 'crispy-seo' ),
+					\__( '%d images queued for optimization.', 'crispy-seo' ),
 					$queued
 				),
 				'queued'  => $queued,
@@ -725,15 +725,15 @@ class ImageOptimizer {
 	 * AJAX: Process queue batch.
 	 */
 	public function ajaxProcessQueue(): void {
-		check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$result = $this->processQueueBatch( 5 );
 
-		wp_send_json_success(
+		\wp_send_json_success(
 			[
 				'processed' => $result['processed'],
 				'failed'    => $result['failed'],
@@ -746,13 +746,13 @@ class ImageOptimizer {
 	 * AJAX: Get optimization stats.
 	 */
 	public function ajaxGetStats(): void {
-		check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_image_optimization', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
-		wp_send_json_success( [ 'stats' => $this->getStats() ] );
+		\wp_send_json_success( [ 'stats' => $this->getStats() ] );
 	}
 
 	/**

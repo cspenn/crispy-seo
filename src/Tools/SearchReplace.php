@@ -58,8 +58,8 @@ class SearchReplace {
 		$this->serializedHandler = new SerializedHandler();
 
 		// AJAX handlers.
-		add_action( 'wp_ajax_crispy_seo_search_replace', [ $this, 'ajaxSearchReplace' ] );
-		add_action( 'wp_ajax_crispy_seo_get_tables', [ $this, 'ajaxGetTables' ] );
+		\add_action( 'wp_ajax_crispy_seo_search_replace', [ $this, 'ajaxSearchReplace' ] );
+		\add_action( 'wp_ajax_crispy_seo_get_tables', [ $this, 'ajaxGetTables' ] );
 	}
 
 	/**
@@ -239,12 +239,12 @@ class SearchReplace {
 		];
 
 		if ( empty( $search ) ) {
-			$result['errors'][] = __( 'Search term is required.', 'crispy-seo' );
+			$result['errors'][] = \__( 'Search term is required.', 'crispy-seo' );
 			return $result;
 		}
 
 		if ( $search === $replace ) {
-			$result['errors'][] = __( 'Search and replace terms are identical.', 'crispy-seo' );
+			$result['errors'][] = \__( 'Search and replace terms are identical.', 'crispy-seo' );
 			return $result;
 		}
 
@@ -403,7 +403,7 @@ class SearchReplace {
 								$hasError           = true;
 								$result['errors'][] = sprintf(
 									/* translators: 1: table name, 2: row ID */
-									__( 'Failed to update %1$s row %2$s', 'crispy-seo' ),
+									\__( 'Failed to update %1$s row %2$s', 'crispy-seo' ),
 									$table,
 									$rowId
 								);
@@ -420,7 +420,7 @@ class SearchReplace {
 			$hasError           = true;
 			$result['errors'][] = sprintf(
 				/* translators: 1: table name, 2: error message */
-				__( 'Exception in table %1$s: %2$s', 'crispy-seo' ),
+				\__( 'Exception in table %1$s: %2$s', 'crispy-seo' ),
 				$table,
 				$e->getMessage()
 			);
@@ -434,7 +434,7 @@ class SearchReplace {
 				$result['affected'] = 0;
 				$result['errors'][] = sprintf(
 					/* translators: %s: table name */
-					__( 'All changes to %s have been rolled back due to errors.', 'crispy-seo' ),
+					\__( 'All changes to %s have been rolled back due to errors.', 'crispy-seo' ),
 					$table
 				);
 			} else {
@@ -514,19 +514,19 @@ class SearchReplace {
 	 * AJAX handler: Perform search/replace.
 	 */
 	public function ajaxSearchReplace(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
-		$search  = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
-		$replace = isset( $_POST['replace'] ) ? sanitize_text_field( wp_unslash( $_POST['replace'] ) ) : '';
+		$search  = isset( $_POST['search'] ) ? \sanitize_text_field( \wp_unslash( $_POST['search'] ) ) : '';
+		$replace = isset( $_POST['replace'] ) ? \sanitize_text_field( \wp_unslash( $_POST['replace'] ) ) : '';
 		$tables  = isset( $_POST['tables'] ) ? array_map( 'sanitize_text_field', (array) $_POST['tables'] ) : [];
 		$dryRun  = ! isset( $_POST['confirm'] ) || $_POST['confirm'] !== 'true';
 
 		if ( empty( $search ) ) {
-			wp_send_json_error( [ 'message' => __( 'Search term is required.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Search term is required.', 'crispy-seo' ) ] );
 		}
 
 		// Validate tables against allowed list.
@@ -536,7 +536,7 @@ class SearchReplace {
 		$result = $this->replace( $search, $replace, $tables, $dryRun );
 
 		if ( ! empty( $result['errors'] ) && $result['affected'] === 0 ) {
-			wp_send_json_error(
+			\wp_send_json_error(
 				[
 					'message' => implode( "\n", $result['errors'] ),
 					'result'  => $result,
@@ -547,16 +547,16 @@ class SearchReplace {
 		$message = $dryRun
 			? sprintf(
 				/* translators: %d: number of rows */
-				__( 'Preview: %d rows would be affected.', 'crispy-seo' ),
+				\__( 'Preview: %d rows would be affected.', 'crispy-seo' ),
 				$result['affected']
 			)
 			: sprintf(
 				/* translators: %d: number of rows */
-				__( 'Successfully updated %d rows.', 'crispy-seo' ),
+				\__( 'Successfully updated %d rows.', 'crispy-seo' ),
 				$result['affected']
 			);
 
-		wp_send_json_success(
+		\wp_send_json_success(
 			[
 				'message' => $message,
 				'result'  => $result,
@@ -569,14 +569,14 @@ class SearchReplace {
 	 * AJAX handler: Get available tables.
 	 */
 	public function ajaxGetTables(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$tables = $this->getTables();
 
-		wp_send_json_success( [ 'tables' => $tables ] );
+		\wp_send_json_success( [ 'tables' => $tables ] );
 	}
 }

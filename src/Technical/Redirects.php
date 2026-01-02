@@ -23,17 +23,17 @@ class Redirects {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'template_redirect', [ $this, 'handleRedirect' ], 1 );
-		add_action( 'wp_ajax_crispy_seo_save_redirect', [ $this, 'ajaxSaveRedirect' ] );
-		add_action( 'wp_ajax_crispy_seo_delete_redirect', [ $this, 'ajaxDeleteRedirect' ] );
-		add_action( 'wp_ajax_crispy_seo_import_redirects', [ $this, 'ajaxImportRedirects' ] );
+		\add_action( 'template_redirect', [ $this, 'handleRedirect' ], 1 );
+		\add_action( 'wp_ajax_crispy_seo_save_redirect', [ $this, 'ajaxSaveRedirect' ] );
+		\add_action( 'wp_ajax_crispy_seo_delete_redirect', [ $this, 'ajaxDeleteRedirect' ] );
+		\add_action( 'wp_ajax_crispy_seo_import_redirects', [ $this, 'ajaxImportRedirects' ] );
 	}
 
 	/**
 	 * Handle redirect if URL matches.
 	 */
 	public function handleRedirect(): void {
-		if ( is_admin() ) {
+		if ( \is_admin() ) {
 			return;
 		}
 
@@ -47,10 +47,10 @@ class Redirects {
 
 				// Handle relative targets.
 				if ( strpos( $target, '/' ) === 0 ) {
-					$target = home_url( $target );
+					$target = \home_url( $target );
 				}
 
-				wp_redirect( $target, $type );
+				\wp_redirect( $target, $type );
 				exit;
 			}
 		}
@@ -60,7 +60,7 @@ class Redirects {
 	 * Get current request path.
 	 */
 	private function getCurrentPath(): string {
-		$path = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( $_SERVER['REQUEST_URI'] ) : '/';
+		$path = isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( $_SERVER['REQUEST_URI'] ) : '/';
 
 		// Parse URL to get just the path.
 		$parsed = wp_parse_url( $path );
@@ -108,7 +108,7 @@ class Redirects {
 	 * @return array<array{source: string, target: string, type: int}>
 	 */
 	public function getRedirects(): array {
-		$redirects = get_option( self::OPTION_KEY, [] );
+		$redirects = \get_option( self::OPTION_KEY, [] );
 
 		if ( ! is_array( $redirects ) ) {
 			return [];
@@ -158,7 +158,7 @@ class Redirects {
 			'created' => current_time( 'mysql' ),
 		];
 
-		return update_option( self::OPTION_KEY, $redirects );
+		return \update_option( self::OPTION_KEY, $redirects );
 	}
 
 	/**
@@ -178,7 +178,7 @@ class Redirects {
 				$redirects[ $index ]['target'] = $target;
 				$redirects[ $index ]['type']   = $type;
 
-				return update_option( self::OPTION_KEY, $redirects );
+				return \update_option( self::OPTION_KEY, $redirects );
 			}
 		}
 
@@ -198,7 +198,7 @@ class Redirects {
 			return false;
 		}
 
-		return update_option( self::OPTION_KEY, array_values( $filtered ) );
+		return \update_option( self::OPTION_KEY, array_values( $filtered ) );
 	}
 
 	/**
@@ -255,19 +255,19 @@ class Redirects {
 	 * AJAX handler: Save redirect.
 	 */
 	public function ajaxSaveRedirect(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
-		$source    = isset( $_POST['source'] ) ? sanitize_text_field( $_POST['source'] ) : '';
+		$source    = isset( $_POST['source'] ) ? \sanitize_text_field( $_POST['source'] ) : '';
 		$target    = isset( $_POST['target'] ) ? esc_url_raw( $_POST['target'] ) : '';
 		$type      = isset( $_POST['type'] ) ? (int) $_POST['type'] : 301;
-		$oldSource = isset( $_POST['old_source'] ) ? sanitize_text_field( $_POST['old_source'] ) : '';
+		$oldSource = isset( $_POST['old_source'] ) ? \sanitize_text_field( $_POST['old_source'] ) : '';
 
 		if ( empty( $source ) || empty( $target ) ) {
-			wp_send_json_error( [ 'message' => __( 'Source and target are required.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Source and target are required.', 'crispy-seo' ) ] );
 		}
 
 		if ( ! empty( $oldSource ) ) {
@@ -277,9 +277,9 @@ class Redirects {
 		}
 
 		if ( $result ) {
-			wp_send_json_success( [ 'message' => __( 'Redirect saved.', 'crispy-seo' ) ] );
+			\wp_send_json_success( [ 'message' => \__( 'Redirect saved.', 'crispy-seo' ) ] );
 		} else {
-			wp_send_json_error( [ 'message' => __( 'Failed to save redirect.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Failed to save redirect.', 'crispy-seo' ) ] );
 		}
 	}
 
@@ -287,22 +287,22 @@ class Redirects {
 	 * AJAX handler: Delete redirect.
 	 */
 	public function ajaxDeleteRedirect(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
-		$source = isset( $_POST['source'] ) ? sanitize_text_field( $_POST['source'] ) : '';
+		$source = isset( $_POST['source'] ) ? \sanitize_text_field( $_POST['source'] ) : '';
 
 		if ( empty( $source ) ) {
-			wp_send_json_error( [ 'message' => __( 'Source is required.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Source is required.', 'crispy-seo' ) ] );
 		}
 
 		if ( $this->deleteRedirect( $source ) ) {
-			wp_send_json_success( [ 'message' => __( 'Redirect deleted.', 'crispy-seo' ) ] );
+			\wp_send_json_success( [ 'message' => \__( 'Redirect deleted.', 'crispy-seo' ) ] );
 		} else {
-			wp_send_json_error( [ 'message' => __( 'Failed to delete redirect.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Failed to delete redirect.', 'crispy-seo' ) ] );
 		}
 	}
 
@@ -310,25 +310,25 @@ class Redirects {
 	 * AJAX handler: Import redirects.
 	 */
 	public function ajaxImportRedirects(): void {
-		check_ajax_referer( 'crispy_seo_admin', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_admin', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$csv = isset( $_POST['csv'] ) ? sanitize_textarea_field( $_POST['csv'] ) : '';
 
 		if ( empty( $csv ) ) {
-			wp_send_json_error( [ 'message' => __( 'No data provided.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'No data provided.', 'crispy-seo' ) ] );
 		}
 
 		$count = $this->importFromCsv( $csv );
 
-		wp_send_json_success(
+		\wp_send_json_success(
 			[
 				'message' => sprintf(
 					/* translators: %d: number of redirects */
-					__( 'Imported %d redirects.', 'crispy-seo' ),
+					\__( 'Imported %d redirects.', 'crispy-seo' ),
 					$count
 				),
 			]

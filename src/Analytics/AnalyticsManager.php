@@ -24,7 +24,7 @@ class AnalyticsManager {
 		}
 
 		// Don't track in admin or preview mode.
-		if ( is_admin() || is_preview() ) {
+		if ( \is_admin() || is_preview() ) {
 			return;
 		}
 
@@ -38,14 +38,14 @@ class AnalyticsManager {
 	 * Check if logged-in users should be tracked.
 	 */
 	private function shouldTrackLoggedIn(): bool {
-		return (bool) get_option( 'crispy_seo_track_logged_in', false );
+		return (bool) \get_option( 'crispy_seo_track_logged_in', false );
 	}
 
 	/**
 	 * Output Google Analytics 4.
 	 */
 	private function outputGA4(): void {
-		$measurementId = get_option( 'crispy_seo_ga4_id', '' );
+		$measurementId = \get_option( 'crispy_seo_ga4_id', '' );
 
 		if ( empty( $measurementId ) ) {
 			return;
@@ -58,12 +58,12 @@ class AnalyticsManager {
 
 		?>
 <!-- Google Analytics 4 - CrispySEO -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo esc_attr( $measurementId ); ?>"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo \esc_attr( $measurementId ); ?>"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4Config(); ?>);
+gtag('config', '<?php echo \esc_js( $measurementId ); ?>'<?php echo $this->getGA4Config(); ?>);
 </script>
 		<?php
 	}
@@ -75,12 +75,12 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 		$config = [];
 
 		// Anonymize IP (required in some jurisdictions).
-		if ( get_option( 'crispy_seo_ga4_anonymize_ip', true ) ) {
+		if ( \get_option( 'crispy_seo_ga4_anonymize_ip', true ) ) {
 			$config['anonymize_ip'] = true;
 		}
 
 		// Disable advertising features.
-		if ( ! get_option( 'crispy_seo_ga4_advertising', false ) ) {
+		if ( ! \get_option( 'crispy_seo_ga4_advertising', false ) ) {
 			$config['allow_google_signals']             = false;
 			$config['allow_ad_personalization_signals'] = false;
 		}
@@ -89,14 +89,14 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 			return '';
 		}
 
-		return ', ' . wp_json_encode( $config );
+		return ', ' . \wp_json_encode( $config );
 	}
 
 	/**
 	 * Output Plausible Analytics.
 	 */
 	private function outputPlausible(): void {
-		$domain = get_option( 'crispy_seo_plausible_domain', '' );
+		$domain = \get_option( 'crispy_seo_plausible_domain', '' );
 
 		if ( empty( $domain ) ) {
 			return;
@@ -105,7 +105,7 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 		$scriptUrl = 'https://plausible.io/js/script.js';
 
 		// Custom domain for self-hosted.
-		$customDomain = get_option( 'crispy_seo_plausible_custom_domain', '' );
+		$customDomain = \get_option( 'crispy_seo_plausible_custom_domain', '' );
 		if ( ! empty( $customDomain ) ) {
 			$scriptUrl = rtrim( $customDomain, '/' ) . '/js/script.js';
 		}
@@ -113,11 +113,11 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 		// Additional script extensions.
 		$extensions = [];
 
-		if ( get_option( 'crispy_seo_plausible_outbound_links', false ) ) {
+		if ( \get_option( 'crispy_seo_plausible_outbound_links', false ) ) {
 			$extensions[] = 'outbound-links';
 		}
 
-		if ( get_option( 'crispy_seo_plausible_file_downloads', false ) ) {
+		if ( \get_option( 'crispy_seo_plausible_file_downloads', false ) ) {
 			$extensions[] = 'file-downloads';
 		}
 
@@ -127,7 +127,7 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 
 		?>
 <!-- Plausible Analytics - CrispySEO -->
-<script defer data-domain="<?php echo esc_attr( $domain ); ?>" src="<?php echo esc_url( $scriptUrl ); ?>"></script>
+<script defer data-domain="<?php echo \esc_attr( $domain ); ?>" src="<?php echo \esc_url( $scriptUrl ); ?>"></script>
 		<?php
 	}
 
@@ -135,7 +135,7 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 	 * Output Fathom Analytics.
 	 */
 	private function outputFathom(): void {
-		$siteId = get_option( 'crispy_seo_fathom_site_id', '' );
+		$siteId = \get_option( 'crispy_seo_fathom_site_id', '' );
 
 		if ( empty( $siteId ) ) {
 			return;
@@ -149,14 +149,14 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 		$scriptUrl = 'https://cdn.usefathom.com/script.js';
 
 		// Custom domain for self-hosted.
-		$customDomain = get_option( 'crispy_seo_fathom_custom_domain', '' );
+		$customDomain = \get_option( 'crispy_seo_fathom_custom_domain', '' );
 		if ( ! empty( $customDomain ) ) {
 			$scriptUrl = rtrim( $customDomain, '/' ) . '/script.js';
 		}
 
 		?>
 <!-- Fathom Analytics - CrispySEO -->
-<script src="<?php echo esc_url( $scriptUrl ); ?>" data-site="<?php echo esc_attr( $siteId ); ?>" defer></script>
+<script src="<?php echo \esc_url( $scriptUrl ); ?>" data-site="<?php echo \esc_attr( $siteId ); ?>" defer></script>
 		<?php
 	}
 
@@ -164,8 +164,8 @@ gtag('config', '<?php echo esc_js( $measurementId ); ?>'<?php echo $this->getGA4
 	 * Output Matomo Analytics.
 	 */
 	private function outputMatomo(): void {
-		$matomoUrl = get_option( 'crispy_seo_matomo_url', '' );
-		$siteId    = get_option( 'crispy_seo_matomo_site_id', '' );
+		$matomoUrl = \get_option( 'crispy_seo_matomo_url', '' );
+		$siteId    = \get_option( 'crispy_seo_matomo_site_id', '' );
 
 		if ( empty( $matomoUrl ) || empty( $siteId ) ) {
 			return;
@@ -181,14 +181,14 @@ var _paq = window._paq = window._paq || [];
 _paq.push(['trackPageView']);
 _paq.push(['enableLinkTracking']);
 (function() {
-	var u="<?php echo esc_url( $matomoUrl ); ?>";
+	var u="<?php echo \esc_url( $matomoUrl ); ?>";
 	_paq.push(['setTrackerUrl', u+'matomo.php']);
-	_paq.push(['setSiteId', '<?php echo esc_js( $siteId ); ?>']);
+	_paq.push(['setSiteId', '<?php echo \esc_js( $siteId ); ?>']);
 	var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
 	g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
 })();
 </script>
-<noscript><img src="<?php echo esc_url( $matomoUrl ); ?>matomo.php?idsite=<?php echo esc_attr( $siteId ); ?>&amp;rec=1" style="border:0" alt="" /></noscript>
+<noscript><img src="<?php echo \esc_url( $matomoUrl ); ?>matomo.php?idsite=<?php echo \esc_attr( $siteId ); ?>&amp;rec=1" style="border:0" alt="" /></noscript>
 		<?php
 	}
 
@@ -201,19 +201,19 @@ _paq.push(['enableLinkTracking']);
 		return [
 			'ga4'       => [
 				'name'       => 'Google Analytics 4',
-				'configured' => ! empty( get_option( 'crispy_seo_ga4_id' ) ),
+				'configured' => ! empty( \get_option( 'crispy_seo_ga4_id' ) ),
 			],
 			'plausible' => [
 				'name'       => 'Plausible Analytics',
-				'configured' => ! empty( get_option( 'crispy_seo_plausible_domain' ) ),
+				'configured' => ! empty( \get_option( 'crispy_seo_plausible_domain' ) ),
 			],
 			'fathom'    => [
 				'name'       => 'Fathom Analytics',
-				'configured' => ! empty( get_option( 'crispy_seo_fathom_site_id' ) ),
+				'configured' => ! empty( \get_option( 'crispy_seo_fathom_site_id' ) ),
 			],
 			'matomo'    => [
 				'name'       => 'Matomo',
-				'configured' => ! empty( get_option( 'crispy_seo_matomo_url' ) ) && ! empty( get_option( 'crispy_seo_matomo_site_id' ) ),
+				'configured' => ! empty( \get_option( 'crispy_seo_matomo_url' ) ) && ! empty( \get_option( 'crispy_seo_matomo_site_id' ) ),
 			],
 		];
 	}

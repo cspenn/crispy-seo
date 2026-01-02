@@ -55,27 +55,27 @@ class InternalLinkManager {
 	 */
 	private function initHooks(): void {
 		// Content filtering.
-		add_filter( 'the_content', [ $this, 'processContent' ], 15 );
+		\add_filter( 'the_content', [ $this, 'processContent' ], 15 );
 
 		// Cache invalidation on post save.
-		add_action( 'save_post', [ $this, 'invalidateCache' ], 10, 2 );
-		add_action( 'delete_post', [ $this, 'deletePostIndex' ] );
+		\add_action( 'save_post', [ $this, 'invalidateCache' ], 10, 2 );
+		\add_action( 'delete_post', [ $this, 'deletePostIndex' ] );
 
 		// Admin hooks.
-		if ( is_admin() ) {
-			add_action( 'admin_menu', [ $this, 'registerAdminPage' ] );
-			add_action( 'wp_ajax_crispy_seo_add_keyword', [ $this, 'ajaxAddKeyword' ] );
-			add_action( 'wp_ajax_crispy_seo_delete_keyword', [ $this, 'ajaxDeleteKeyword' ] );
-			add_action( 'wp_ajax_crispy_seo_update_keyword', [ $this, 'ajaxUpdateKeyword' ] );
-			add_action( 'wp_ajax_crispy_seo_get_keywords', [ $this, 'ajaxGetKeywords' ] );
-			add_action( 'wp_ajax_crispy_seo_rebuild_link_index', [ $this, 'ajaxRebuildIndex' ] );
+		if ( \is_admin() ) {
+			\add_action( 'admin_menu', [ $this, 'registerAdminPage' ] );
+			\add_action( 'wp_ajax_crispy_seo_add_keyword', [ $this, 'ajaxAddKeyword' ] );
+			\add_action( 'wp_ajax_crispy_seo_delete_keyword', [ $this, 'ajaxDeleteKeyword' ] );
+			\add_action( 'wp_ajax_crispy_seo_update_keyword', [ $this, 'ajaxUpdateKeyword' ] );
+			\add_action( 'wp_ajax_crispy_seo_get_keywords', [ $this, 'ajaxGetKeywords' ] );
+			\add_action( 'wp_ajax_crispy_seo_rebuild_link_index', [ $this, 'ajaxRebuildIndex' ] );
 		}
 
 		// Schedule index rebuild.
-		add_action( 'crispy_seo_build_link_index', [ $this, 'rebuildIndex' ] );
+		\add_action( 'crispy_seo_build_link_index', [ $this, 'rebuildIndex' ] );
 
-		if ( ! wp_next_scheduled( 'crispy_seo_build_link_index' ) ) {
-			wp_schedule_event( time(), 'daily', 'crispy_seo_build_link_index' );
+		if ( ! \wp_next_scheduled( 'crispy_seo_build_link_index' ) ) {
+			\wp_schedule_event( time(), 'daily', 'crispy_seo_build_link_index' );
 		}
 	}
 
@@ -85,8 +85,8 @@ class InternalLinkManager {
 	public function registerAdminPage(): void {
 		add_submenu_page(
 			'crispy-seo',
-			__( 'Internal Links', 'crispy-seo' ),
-			__( 'Internal Links', 'crispy-seo' ),
+			\__( 'Internal Links', 'crispy-seo' ),
+			\__( 'Internal Links', 'crispy-seo' ),
 			'manage_options',
 			'crispy-seo-internal-links',
 			[ $this, 'renderAdminPage' ]
@@ -97,7 +97,7 @@ class InternalLinkManager {
 	 * Render admin page.
 	 */
 	public function renderAdminPage(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! \current_user_can( 'manage_options' ) ) {
 			return;
 		}
 		include CRISPY_SEO_DIR . 'views/admin-internal-links.php';
@@ -111,18 +111,18 @@ class InternalLinkManager {
 	 */
 	public function processContent( string $content ): string {
 		// Skip if in admin, feed, or not singular.
-		if ( is_admin() || is_feed() || ! is_singular() ) {
+		if ( \is_admin() || is_feed() || ! \is_singular() ) {
 			return $content;
 		}
 
-		$post = get_post();
+		$post = \get_post();
 		if ( ! $post instanceof \WP_Post ) {
 			return $content;
 		}
 
 		// Check transient cache.
 		$cacheKey = 'crispy_seo_links_' . $post->ID . '_' . md5( $content );
-		$cached   = get_transient( $cacheKey );
+		$cached   = \get_transient( $cacheKey );
 
 		if ( $cached !== false ) {
 			return $cached;
@@ -132,7 +132,7 @@ class InternalLinkManager {
 		$processedContent = $this->addLinks( $content, $post->ID );
 
 		// Cache the result.
-		set_transient( $cacheKey, $processedContent, self::CACHE_EXPIRATION );
+		\set_transient( $cacheKey, $processedContent, self::CACHE_EXPIRATION );
 
 		return $processedContent;
 	}
@@ -151,7 +151,7 @@ class InternalLinkManager {
 			return $content;
 		}
 
-		$maxLinksPerPage = (int) get_option( self::MAX_LINKS_OPTION, self::DEFAULT_MAX_LINKS );
+		$maxLinksPerPage = (int) \get_option( self::MAX_LINKS_OPTION, self::DEFAULT_MAX_LINKS );
 		$totalLinksAdded = 0;
 		$linkedKeywords  = [];
 
@@ -171,7 +171,7 @@ class InternalLinkManager {
 			}
 
 			// Get target URL.
-			$targetUrl = get_permalink( (int) $keyword['target_post_id'] );
+			$targetUrl = \get_permalink( (int) $keyword['target_post_id'] );
 			if ( ! $targetUrl ) {
 				continue;
 			}
@@ -287,7 +287,7 @@ class InternalLinkManager {
 
 			// Create the anchor element safely using DOM methods.
 			$anchor = $dom->createElement( 'a' );
-			$anchor->setAttribute( 'href', esc_url( $url ) );
+			$anchor->setAttribute( 'href', \esc_url( $url ) );
 			$anchor->setAttribute( 'class', 'crispy-internal-link' );
 			$anchor->appendChild( $dom->createTextNode( $anchorText ) );
 			$fragment->appendChild( $anchor );
@@ -374,13 +374,13 @@ class InternalLinkManager {
 		$tableName = $wpdb->prefix . self::KEYWORDS_TABLE;
 
 		// Validate target post exists.
-		$targetPost = get_post( $targetPostId );
+		$targetPost = \get_post( $targetPostId );
 		if ( ! $targetPost ) {
 			return false;
 		}
 
 		// Sanitize keyword before duplicate check to ensure consistent comparison.
-		$keyword = sanitize_text_field( $keyword );
+		$keyword = \sanitize_text_field( $keyword );
 
 		// Check for duplicate keyword.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -402,7 +402,7 @@ class InternalLinkManager {
 			[
 				'keyword'            => $keyword,
 				'target_post_id'     => $targetPostId,
-				'anchor_text'        => sanitize_text_field( $anchorText ),
+				'anchor_text'        => \sanitize_text_field( $anchorText ),
 				'max_links_per_page' => $maxLinksPerPage,
 				'case_sensitive'     => $caseSensitive ? 1 : 0,
 				'priority'           => $priority,
@@ -532,8 +532,8 @@ class InternalLinkManager {
 
 		// Add post title to each keyword.
 		foreach ( $keywords as &$keyword ) {
-			$post                  = get_post( (int) $keyword['target_post_id'] );
-			$keyword['post_title'] = $post ? $post->post_title : __( '(Deleted post)', 'crispy-seo' );
+			$post                  = \get_post( (int) $keyword['target_post_id'] );
+			$keyword['post_title'] = $post ? $post->post_title : \__( '(Deleted post)', 'crispy-seo' );
 		}
 
 		return [
@@ -556,7 +556,7 @@ class InternalLinkManager {
 		$wpdb->query( $wpdb->prepare( 'TRUNCATE TABLE %i', $indexTable ) );
 
 		// Get all published posts.
-		$posts = get_posts(
+		$posts = \get_posts(
 			[
 				'post_type'      => [ 'post', 'page' ],
 				'post_status'    => 'publish',
@@ -640,7 +640,7 @@ class InternalLinkManager {
 		foreach ( $transients as $transient ) {
 			// Extract the transient name by removing the '_transient_' prefix.
 			$transientName = str_replace( '_transient_', '', $transient );
-			delete_transient( $transientName );
+			\delete_transient( $transientName );
 		}
 	}
 
@@ -685,7 +685,7 @@ class InternalLinkManager {
 		foreach ( $transients as $transient ) {
 			// Extract the transient name by removing the '_transient_' prefix.
 			$transientName = str_replace( '_transient_', '', $transient );
-			delete_transient( $transientName );
+			\delete_transient( $transientName );
 		}
 	}
 
@@ -693,34 +693,34 @@ class InternalLinkManager {
 	 * AJAX: Add keyword.
 	 */
 	public function ajaxAddKeyword(): void {
-		check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
-		$keyword       = isset( $_POST['keyword'] ) ? sanitize_text_field( wp_unslash( $_POST['keyword'] ) ) : '';
+		$keyword       = isset( $_POST['keyword'] ) ? \sanitize_text_field( \wp_unslash( $_POST['keyword'] ) ) : '';
 		$targetPostId  = isset( $_POST['target_post_id'] ) ? (int) $_POST['target_post_id'] : 0;
-		$anchorText    = isset( $_POST['anchor_text'] ) ? sanitize_text_field( wp_unslash( $_POST['anchor_text'] ) ) : '';
+		$anchorText    = isset( $_POST['anchor_text'] ) ? \sanitize_text_field( \wp_unslash( $_POST['anchor_text'] ) ) : '';
 		$maxLinks      = isset( $_POST['max_links'] ) ? (int) $_POST['max_links'] : 3;
 		$caseSensitive = isset( $_POST['case_sensitive'] ) && $_POST['case_sensitive'] === '1';
 		$priority      = isset( $_POST['priority'] ) ? (int) $_POST['priority'] : 10;
 
 		if ( empty( $keyword ) || $targetPostId <= 0 ) {
-			wp_send_json_error( [ 'message' => __( 'Keyword and target post are required.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Keyword and target post are required.', 'crispy-seo' ) ] );
 		}
 
 		$result = $this->addKeyword( $keyword, $targetPostId, $anchorText, $maxLinks, $caseSensitive, $priority );
 
 		if ( $result ) {
-			wp_send_json_success(
+			\wp_send_json_success(
 				[
-					'message' => __( 'Keyword added successfully.', 'crispy-seo' ),
+					'message' => \__( 'Keyword added successfully.', 'crispy-seo' ),
 					'id'      => $result,
 				]
 			);
 		} else {
-			wp_send_json_error( [ 'message' => __( 'Failed to add keyword. It may already exist.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Failed to add keyword. It may already exist.', 'crispy-seo' ) ] );
 		}
 	}
 
@@ -728,22 +728,22 @@ class InternalLinkManager {
 	 * AJAX: Delete keyword.
 	 */
 	public function ajaxDeleteKeyword(): void {
-		check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$keywordId = isset( $_POST['keyword_id'] ) ? (int) $_POST['keyword_id'] : 0;
 
 		if ( $keywordId <= 0 ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid keyword ID.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Invalid keyword ID.', 'crispy-seo' ) ] );
 		}
 
 		if ( $this->deleteKeyword( $keywordId ) ) {
-			wp_send_json_success( [ 'message' => __( 'Keyword deleted.', 'crispy-seo' ) ] );
+			\wp_send_json_success( [ 'message' => \__( 'Keyword deleted.', 'crispy-seo' ) ] );
 		} else {
-			wp_send_json_error( [ 'message' => __( 'Failed to delete keyword.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Failed to delete keyword.', 'crispy-seo' ) ] );
 		}
 	}
 
@@ -751,16 +751,16 @@ class InternalLinkManager {
 	 * AJAX: Update keyword.
 	 */
 	public function ajaxUpdateKeyword(): void {
-		check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$keywordId = isset( $_POST['keyword_id'] ) ? (int) $_POST['keyword_id'] : 0;
 
 		if ( $keywordId <= 0 ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid keyword ID.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Invalid keyword ID.', 'crispy-seo' ) ] );
 		}
 
 		$data = [];
@@ -776,9 +776,9 @@ class InternalLinkManager {
 		}
 
 		if ( $this->updateKeyword( $keywordId, $data ) ) {
-			wp_send_json_success( [ 'message' => __( 'Keyword updated.', 'crispy-seo' ) ] );
+			\wp_send_json_success( [ 'message' => \__( 'Keyword updated.', 'crispy-seo' ) ] );
 		} else {
-			wp_send_json_error( [ 'message' => __( 'Failed to update keyword.', 'crispy-seo' ) ] );
+			\wp_send_json_error( [ 'message' => \__( 'Failed to update keyword.', 'crispy-seo' ) ] );
 		}
 	}
 
@@ -786,10 +786,10 @@ class InternalLinkManager {
 	 * AJAX: Get keywords list.
 	 */
 	public function ajaxGetKeywords(): void {
-		check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$page    = isset( $_POST['page'] ) ? max( 1, (int) $_POST['page'] ) : 1;
@@ -798,7 +798,7 @@ class InternalLinkManager {
 
 		$result = $this->getKeywords( $perPage, $offset );
 
-		wp_send_json_success(
+		\wp_send_json_success(
 			[
 				'keywords'   => $result['keywords'],
 				'total'      => $result['total'],
@@ -812,15 +812,15 @@ class InternalLinkManager {
 	 * AJAX: Rebuild link index.
 	 */
 	public function ajaxRebuildIndex(): void {
-		check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
+		\check_ajax_referer( 'crispy_seo_internal_links', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'crispy-seo' ) ] );
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Permission denied.', 'crispy-seo' ) ] );
 		}
 
 		$this->rebuildIndex();
 
-		wp_send_json_success( [ 'message' => __( 'Link index rebuilt successfully.', 'crispy-seo' ) ] );
+		\wp_send_json_success( [ 'message' => \__( 'Link index rebuilt successfully.', 'crispy-seo' ) ] );
 	}
 
 	/**
