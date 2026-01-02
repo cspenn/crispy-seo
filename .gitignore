@@ -1,0 +1,37 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.zip
+*.cache
+.phpunit.cache/
+
+# Development tools
+.phpcs.xml
+phpstan.neon
+deptrac.yaml
+rector.php
+
+# Tests
+/tests/
+
+# Documentation
+/docs/
+
+# CI/CD
+.github/
+
+# Claude/Serena
+.claude/
+.serena/

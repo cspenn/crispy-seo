@@ -1,0 +1,112 @@
+/**
+ * CrispySEO Admin Styles
+ *
+ * @package CrispySEO
+ * @since 1.0.0
+ */
+
+/* Stats boxes */
+.crispy-stats-boxes {
+	display: flex;
+	gap: 20px;
+	margin: 20px 0;
+	flex-wrap: wrap;
+}
+
+.crispy-stats-boxes .card {
+	flex: 1;
+	min-width: 150px;
+	padding: 15px;
+}
+
+.crispy-stats-boxes h3 {
+	margin-top: 0;
+	font-size: 14px;
+	color: #1d2327;
+}
+
+.crispy-stats-boxes p {
+	font-size: 24px;
+	font-weight: bold;
+	margin: 0;
+}
+
+/* Spinner */
+.spinner.is-active {
+	visibility: visible;
+	float: none;
+	margin-left: 10px;
+}
+
+/* Character counter */
+.char-count {
+	color: #646970;
+	font-size: 12px;
+	margin-top: 4px;
+}
+
+.char-count.over-limit {
+	color: #d63638;
+	font-weight: bold;
+}
+
+/* Redirect table */
+.crispy-seo-redirects table code {
+	background: #f0f0f1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 12px;
+}
+
+/* Meta box styles */
+.crispy-seo-meta-box .form-table th {
+	width: 150px;
+	padding: 15px 10px 15px 0;
+}
+
+.crispy-seo-meta-box textarea {
+	width: 100%;
+}
+
+.crispy-seo-meta-box .description {
+	color: #646970;
+	font-style: italic;
+	margin-top: 4px;
+}
+
+/* Progress bar */
+.progress-bar-container {
+	background: #e0e0e0;
+	border-radius: 4px;
+	height: 20px;
+	overflow: hidden;
+}
+
+.progress-bar {
+	background: #0073aa;
+	height: 100%;
+	width: 0;
+	transition: width 0.3s ease;
+}
+
+/* Cards */
+.crispy-seo-admin .card {
+	max-width: none;
+	margin-bottom: 20px;
+	padding: 20px;
+}
+
+.crispy-seo-admin .card h2 {
+	margin-top: 0;
+}
+
+/* Form table adjustments */
+.crispy-seo-admin .form-table input[type="range"] {
+	vertical-align: middle;
+}
+
+.crispy-seo-admin .form-table input[type="range"] + span {
+	margin-left: 10px;
+	min-width: 40px;
+	display: inline-block;
+}
