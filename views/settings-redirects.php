@@ -46,9 +46,10 @@ $stats            = $redirect_manager ? $redirect_manager->getStats() : [];
 	</div>
 
 	<div class="card" style="margin-bottom: 20px; padding: 20px;">
-		<h2 style="margin-top: 0;"><?php esc_html_e( 'Add Redirect', 'crispy-seo' ); ?></h2>
+		<h2 style="margin-top: 0;" id="form-heading"><?php esc_html_e( 'Add Redirect', 'crispy-seo' ); ?></h2>
 
 		<form id="add-redirect-form" method="post">
+			<input type="hidden" id="redirect-id" name="id" value="0">
 
 			<table class="form-table">
 				<tr>
@@ -93,7 +94,10 @@ $stats            = $redirect_manager ? $redirect_manager->getStats() : [];
 			</table>
 
 			<p class="submit">
-				<button type="submit" class="button button-primary">
+				<button type="button" id="cancel-edit" class="button" style="display: none; margin-right: 10px;">
+					<?php esc_html_e( 'Cancel', 'crispy-seo' ); ?>
+				</button>
+				<button type="submit" id="submit-redirect" class="button button-primary">
 					<?php esc_html_e( 'Add Redirect', 'crispy-seo' ); ?>
 				</button>
 				<span class="spinner" style="float: none;"></span>
@@ -121,12 +125,19 @@ $stats            = $redirect_manager ? $redirect_manager->getStats() : [];
 					</tr>
 				<?php else : ?>
 					<?php foreach ( $redirects as $redirect ) : ?>
-						<tr data-id="<?php echo esc_attr( $redirect->id ); ?>">
-							<td><code><?php echo esc_html( $redirect->source_path ); ?></code></td>
-							<td><?php echo esc_html( $redirect->target_url ?: '—' ); ?></td>
-							<td><?php echo esc_html( $redirect->redirect_type ); ?></td>
-							<td><?php echo esc_html( number_format_i18n( $redirect->hit_count ) ); ?></td>
+						<tr data-id="<?php echo esc_attr( $redirect['id'] ); ?>">
+							<td><code><?php echo esc_html( $redirect['source_path'] ); ?></code></td>
+							<td><?php echo esc_html( $redirect['target_url'] ?: '—' ); ?></td>
+							<td><?php echo esc_html( $redirect['redirect_type'] ); ?></td>
+							<td><?php echo esc_html( number_format_i18n( $redirect['hit_count'] ) ); ?></td>
 							<td>
+								<button type="button" class="button button-small edit-redirect"
+										data-id="<?php echo esc_attr( $redirect['id'] ); ?>"
+										data-source="<?php echo esc_attr( $redirect['source_path'] ); ?>"
+										data-target="<?php echo esc_attr( $redirect['target_url'] ); ?>"
+										data-type="<?php echo esc_attr( $redirect['redirect_type'] ); ?>">
+									<?php esc_html_e( 'Edit', 'crispy-seo' ); ?>
+								</button>
 								<button type="button" class="button button-small delete-redirect">
 									<?php esc_html_e( 'Delete', 'crispy-seo' ); ?>
 								</button>
@@ -144,13 +155,14 @@ jQuery(document).ready(function($) {
 	var nonce = typeof crispySeoAdmin !== 'undefined' ? crispySeoAdmin.nonce : '';
 	var ajaxUrl = typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php';
 
-	// Add redirect form handler.
+	// Add/Edit redirect form handler.
 	$('#add-redirect-form').on('submit', function(e) {
 		e.preventDefault();
 
 		var $form = $(this);
 		var $button = $form.find('button[type="submit"]');
 		var $spinner = $form.find('.spinner');
+		var id = $('#redirect-id').val();
 
 		var data = {
 			action: 'crispy_seo_save_redirect',
@@ -159,6 +171,11 @@ jQuery(document).ready(function($) {
 			target: $('#redirect-target').val(),
 			type: $('#redirect-type').val()
 		};
+
+		// Include ID if updating (existing redirect).
+		if (id && id !== '0') {
+			data.id = id;
+		}
 
 		if (!data.source) {
 			alert('<?php echo esc_js( __( 'Source URL is required.', 'crispy-seo' ) ); ?>');
@@ -181,6 +198,46 @@ jQuery(document).ready(function($) {
 			$button.prop('disabled', false);
 			$spinner.removeClass('is-active');
 		});
+	});
+
+	// Edit redirect handler.
+	$(document).on('click', '.edit-redirect', function() {
+		var $btn = $(this);
+		var id = $btn.data('id');
+		var source = $btn.data('source');
+		var target = $btn.data('target');
+		var type = $btn.data('type');
+
+		// Populate form fields.
+		$('#redirect-id').val(id);
+		$('#redirect-source').val(source);
+		$('#redirect-target').val(target);
+		$('#redirect-type').val(type);
+
+		// Change form state to "Edit".
+		$('#form-heading').text('<?php echo esc_js( __( 'Edit Redirect', 'crispy-seo' ) ); ?>');
+		$('#submit-redirect').text('<?php echo esc_js( __( 'Update Redirect', 'crispy-seo' ) ); ?>');
+		$('#cancel-edit').show();
+
+		// Scroll to form smoothly.
+		$('html, body').animate({
+			scrollTop: $('#add-redirect-form').offset().top - 50
+		}, 500);
+
+		// Focus on source field for better UX.
+		$('#redirect-source').focus();
+	});
+
+	// Cancel edit handler.
+	$('#cancel-edit').on('click', function() {
+		// Reset form to add mode.
+		$('#redirect-id').val('0');
+		$('#redirect-source').val('');
+		$('#redirect-target').val('');
+		$('#redirect-type').val('301');
+		$('#form-heading').text('<?php echo esc_js( __( 'Add Redirect', 'crispy-seo' ) ); ?>');
+		$('#submit-redirect').text('<?php echo esc_js( __( 'Add Redirect', 'crispy-seo' ) ); ?>');
+		$(this).hide();
 	});
 
 	// Delete redirect handler.

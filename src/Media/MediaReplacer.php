@@ -58,7 +58,7 @@ class MediaReplacer {
 	 * @param \WP_Post $post Post object.
 	 */
 	public function addMetaBox( \WP_Post $post ): void {
-		add_meta_box(
+		\add_meta_box(
 			'crispy-seo-media-replace',
 			\__( 'Replace Media', 'crispy-seo' ),
 			[ $this, 'renderMetaBox' ],
@@ -86,9 +86,9 @@ class MediaReplacer {
 	 */
 	public function addReplaceField( array $formFields, \WP_Post $post ): array {
 		// Only for images and documents.
-		$mimeType = get_post_mime_type( $post->ID );
+		$mimeType = \get_post_mime_type( $post->ID );
 
-		if ( strpos( $mimeType, 'image/' ) !== 0 && strpos( $mimeType, 'application/' ) !== 0 ) {
+		if ( \strpos( $mimeType, 'image/' ) !== 0 && \strpos( $mimeType, 'application/' ) !== 0 ) {
 			return $formFields;
 		}
 
@@ -97,11 +97,11 @@ class MediaReplacer {
 		$html = '<div class="crispy-media-replace-field">';
 		$html .= \wp_nonce_field( 'crispy_seo_media_replace', 'crispy_media_replace_nonce', true, false );
 		$html .= '<input type="file" name="crispy_replacement_file" id="crispy-replacement-file" />';
-		$html .= '<p class="description">' . esc_html\__( 'Select a new file to replace the current one.', 'crispy-seo' ) . '</p>';
+		$html .= '<p class="description">' . \esc_html__( 'Select a new file to replace the current one.', 'crispy-seo' ) . '</p>';
 
 		if ( $hasBackup ) {
 			$html .= '<p><a href="#" class="button crispy-restore-backup" data-id="' . \absint( $post->ID ) . '">';
-			$html .= esc_html\__( 'Restore Original', 'crispy-seo' ) . '</a></p>';
+			$html .= \esc_html__( 'Restore Original', 'crispy-seo' ) . '</a></p>';
 		}
 
 		$html .= '</div>';
@@ -136,7 +136,7 @@ class MediaReplacer {
 		}
 
 		// Validate new file.
-		if ( ! file_exists( $newFilePath ) ) {
+		if ( ! \file_exists( $newFilePath ) ) {
 			return [
 				'success'             => false,
 				'message'             => \__( 'Replacement file not found.', 'crispy-seo' ),
@@ -155,8 +155,8 @@ class MediaReplacer {
 		}
 
 		// Validate MIME type matches or is compatible.
-		$currentMime = get_post_mime_type( $attachmentId );
-		$newMime     = mime_content_type( $newFilePath );
+		$currentMime = \get_post_mime_type( $attachmentId );
+		$newMime     = \mime_content_type( $newFilePath );
 
 		// mime_content_type can return false if file is unreadable or extension unavailable.
 		if ( $newMime === false ) {
@@ -188,7 +188,7 @@ class MediaReplacer {
 		$oldUrl = \wp_get_attachment_url( $attachmentId );
 
 		// Replace the file.
-		if ( ! copy( $newFilePath, $currentFile ) ) {
+		if ( ! \copy( $newFilePath, $currentFile ) ) {
 			return [
 				'success'             => false,
 				'message'             => \__( 'Failed to copy replacement file.', 'crispy-seo' ),
@@ -197,7 +197,7 @@ class MediaReplacer {
 		}
 
 		// Regenerate thumbnails for images.
-		if ( strpos( $currentMime, 'image/' ) === 0 ) {
+		if ( \strpos( $currentMime, 'image/' ) === 0 ) {
 			$this->regenerateThumbnails( $attachmentId );
 		}
 
@@ -225,7 +225,7 @@ class MediaReplacer {
 		\delete_post_meta( $attachmentId, '_crispy_seo_optimized_size' );
 
 		// Record replacement.
-		\update_post_meta( $attachmentId, '_crispy_seo_replaced_at', current_time( 'mysql' ) );
+		\update_post_meta( $attachmentId, '_crispy_seo_replaced_at', \current_time( 'mysql' ) );
 
 		return [
 			'success'             => true,
@@ -248,8 +248,8 @@ class MediaReplacer {
 		}
 
 		// Allow image-to-image replacements.
-		$currentType = explode( '/', $current )[0] ?? '';
-		$newType     = explode( '/', $new )[0] ?? '';
+		$currentType = \explode( '/', $current )[0] ?? '';
+		$newType     = \explode( '/', $new )[0] ?? '';
 
 		if ( $currentType === 'image' && $newType === 'image' ) {
 			return true;
@@ -279,14 +279,14 @@ class MediaReplacer {
 		// Delete old thumbnails.
 		$metadata = \wp_get_attachment_metadata( $attachmentId );
 
-		if ( is_array( $metadata ) && ! empty( $metadata['sizes'] ) ) {
+		if ( \is_array( $metadata ) && ! empty( $metadata['sizes'] ) ) {
 			$uploadDir = \wp_upload_dir();
-			$baseDir   = dirname( $filePath );
+			$baseDir   = \dirname( $filePath );
 
 			foreach ( $metadata['sizes'] as $size ) {
 				$thumbPath = $baseDir . '/' . $size['file'];
-				if ( file_exists( $thumbPath ) ) {
-					wp_delete_file( $thumbPath );
+				if ( \file_exists( $thumbPath ) ) {
+					\wp_delete_file( $thumbPath );
 				}
 			}
 		}
@@ -486,18 +486,18 @@ class MediaReplacer {
 	private function createBackup( int $attachmentId, string $filePath ): bool {
 		$backupDir = OptimizationInstaller::getBackupDirectory();
 
-		if ( ! is_dir( $backupDir ) ) {
-			wp_mkdir_p( $backupDir );
+		if ( ! \is_dir( $backupDir ) ) {
+			\wp_mkdir_p( $backupDir );
 		}
 
-		$backupPath = $backupDir . '/' . $attachmentId . '_original_' . basename( $filePath );
+		$backupPath = $backupDir . '/' . $attachmentId . '_original_' . \basename( $filePath );
 
 		// Don't overwrite existing backup.
-		if ( file_exists( $backupPath ) ) {
+		if ( \file_exists( $backupPath ) ) {
 			return true;
 		}
 
-		return copy( $filePath, $backupPath );
+		return \copy( $filePath, $backupPath );
 	}
 
 	/**
@@ -514,9 +514,9 @@ class MediaReplacer {
 			return false;
 		}
 
-		$backupPath = $backupDir . '/' . $attachmentId . '_original_' . basename( $filePath );
+		$backupPath = $backupDir . '/' . $attachmentId . '_original_' . \basename( $filePath );
 
-		return file_exists( $backupPath );
+		return \file_exists( $backupPath );
 	}
 
 	/**
@@ -536,16 +536,16 @@ class MediaReplacer {
 			];
 		}
 
-		$backupPath = $backupDir . '/' . $attachmentId . '_original_' . basename( $filePath );
+		$backupPath = $backupDir . '/' . $attachmentId . '_original_' . \basename( $filePath );
 
-		if ( ! file_exists( $backupPath ) ) {
+		if ( ! \file_exists( $backupPath ) ) {
 			return [
 				'success' => false,
 				'message' => \__( 'No backup found.', 'crispy-seo' ),
 			];
 		}
 
-		if ( ! copy( $backupPath, $filePath ) ) {
+		if ( ! \copy( $backupPath, $filePath ) ) {
 			return [
 				'success' => false,
 				'message' => \__( 'Failed to restore backup.', 'crispy-seo' ),
@@ -591,10 +591,10 @@ class MediaReplacer {
 		// Validate upload.
 		$uploadOverrides = [
 			'test_form' => false,
-			'mimes'     => get_allowed_mime_types(),
+			'mimes'     => \get_allowed_mime_types(),
 		];
 
-		$uploadedFile = wp_handle_upload( $file, $uploadOverrides );
+		$uploadedFile = \wp_handle_upload( $file, $uploadOverrides );
 
 		if ( isset( $uploadedFile['error'] ) ) {
 			\wp_send_json_error( [ 'message' => $uploadedFile['error'] ] );
@@ -604,8 +604,8 @@ class MediaReplacer {
 		$result = $this->replaceFile( $attachmentId, $uploadedFile['file'], true );
 
 		// Clean up temp file.
-		if ( file_exists( $uploadedFile['file'] ) ) {
-			wp_delete_file( $uploadedFile['file'] );
+		if ( \file_exists( $uploadedFile['file'] ) ) {
+			\wp_delete_file( $uploadedFile['file'] );
 		}
 
 		if ( $result['success'] ) {
